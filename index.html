@@ -12,42 +12,37 @@ body, html {
     background-size: cover;
 }
 div.transbox {
+    /* margin: 0; */
+    position: fixed;
+    width: 100%;
+    /* top: 6em; */
     height: 4em;
-    padding-top: 2em;
-    opacity: 0.5;
-    background: black;
-    /* border-top: 3px solid #ccc; */
-    /* border-bottom: 3px solid #ccc; */
+    padding-top: 1em;
+    background: rgba(0, 0, 0, 0.5);
     margin-top: 5.0em;
-}
-h2.ontop{
-    margin: 0;
-    position: relative;
-    top: 6em;
     color: white;
     text-align: center;
     font-family: "Lucida Grande", Tahoma;
     font-size: x-large;
 }
-
-.footer {
+div.footer {
     position: fixed;
     left: 0;
     bottom: 0;
     width: 100%;
-    background-color: black;
+    background: rgba(0, 0, 0, 0.5);
     color: white;
     font-family: "Lucida Grande", Tahoma;
     text-align: center;
-    opacity: 0.5;
 }
         </style>
     </head>
     <body>
-        <h2 class="ontop">
+        <div class="transbox">
+            <p>
             George and Kris are getting married.
-        </h2>
-        <div class="transbox"></div>
+            </p>
+        </div>
 
         <div class="footer">
             <p>
