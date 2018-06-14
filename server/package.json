@@ -1,0 +1,13 @@
+{
+  "name": "weddingApp",
+  "version": "1.0.0",
+  "description": "Wedding site",
+  "author": "George Mathews <george@georgemathe.ws",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.16.1"
+  }
+}

@@ -1,0 +1,12 @@
+version: '3'
+services:
+    dynamodb:
+        image: dwmkerr/dynamodb
+        ports:
+            - "8000:8000"
+    app:
+        build: .
+        ports:
+            - "8080:8080"
+        links:
+            - dynamodb
