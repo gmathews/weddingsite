@@ -8,5 +8,9 @@ services:
         build: .
         ports:
             - "8080:8080"
-        links:
+        depends_on:
             - dynamodb
+        environment:
+            - AWS_ACCESS_KEY_ID=your_access_key_id
+            - AWS_SECRET_ACCESS_KEY=your_secret_access_key
+
