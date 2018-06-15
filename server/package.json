@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "express": "^4.16.1",
-    "aws-sdk": "*"
+    "aws-sdk": "*",
+    "body-parser": "*"
   }
 }
