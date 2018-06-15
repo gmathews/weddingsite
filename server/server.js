@@ -39,13 +39,25 @@ app.route('/rsvp')
     })
     .put((req, res) => {
         console.log(req.body);
-        rsvp.update(req.body, res.send);
+        rsvp.update(req.body, (err, data) => {
+            if(err){
+                res.status(500).send(err);
+            }else{
+                res.send(data);
+            }
+        });
     });
 
 app.get('/rsvp/all', (req, res) => {
     console.log(req.body);
-    let password = req.body.password;
-    rsvp.all(password, res.send);
+    let password = req.query.password;
+    rsvp.all(password, (err, data) => {
+        if(err){
+            res.status(404).send(err);
+        }else{
+            res.send(data);
+        }
+    });
 });
 
 app.listen(PORT, HOST);

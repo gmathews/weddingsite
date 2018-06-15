@@ -1,3 +1,6 @@
+const parse = require('csv-parse');
+const fs = require('fs');
+
 const table = "Guests";
 module.exports = class Rsvp {
 
@@ -21,14 +24,16 @@ module.exports = class Rsvp {
             }
         };
 
+        const docClient = new awsSDK.DynamoDB.DocumentClient();
+
+        this.docClient = docClient;
+
         // Create the RSVP table
         dynamodb.createTable(params, function(err, data) {
             if (err) {
                 console.error("Unable to create table. Error JSON:", JSON.stringify(err, null, 2));
             } else {
                 console.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
-                // Add all the data
-                // TODO: figure out the CSV format
                 function addItem(data){
                     docClient.put(data, function(err, data) {
                         if (err) {
@@ -38,10 +43,43 @@ module.exports = class Rsvp {
                         }
                     });
                 }
+                // Add all the data
+                console.log("Importing guests into DynamoDB. Please wait.");
+                const file = fs.readFileSync('./guests.csv', 'utf8');
+                console.log(file);
+
+                parse(file, {'relax_column_count': true}, (err, guestGroups) => {
+                    console.log('Error parsing CSV:', err);
+                    guestGroups.forEach((guestGroup) => {
+                        // FirstName LastName, SecondFirstName SecondLastName, ... +1, PIN
+                        let members = [];
+                        let hasPlusOne = false;
+                        const pin = guestGroup[guestGroup.length - 1];
+                        // Last item is the PIN, so don't bother parsing it
+                        for(let i = 0; i < guestGroup.length - 1; i++){
+                            const item = guestGroup[i];
+                            if(item === '+1'){
+                                hasPlusOne = true;
+                            }else{
+                                members.push({'name': item, 'confirmed': false});
+                            }
+                        }
+                        const firstPerson = guestGroup[0].split(' ');
+                        const lastname = firstPerson[firstPerson.length - 1];
+
+                        addItem({
+                            TableName: table,
+                            Item: {
+                                'lastname': lastname,
+                                'pin': pin,
+                                'hasPlusOne': hasPlusOne,
+                                'members': members
+                            }
+                        });
+                    });
+                });
             }
         });
-
-        this.docClient = new awsSDK.DynamoDB.DocumentClient();
     }
 
     get(name, pin, next) {
@@ -65,13 +103,13 @@ module.exports = class Rsvp {
         });
     }
 
-    update(data) {
-        // TODO: setup params
+    update(data, next) {
         let params = {
             TableName: table,
             Key: {
                 "lastname": data.lastname,
                 "pin": data.pin
+                // TODO: filter data, don't all users to add extra stuff or change read only fields
             },
             // Only update if item already exists
             ConditionExpression: "attribute_exists(lastname)"
@@ -82,11 +120,15 @@ module.exports = class Rsvp {
             } else {
                 console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
             }
-            // TODO: res gets the response
+            next(err, data);
         });
     }
 
-    all(password) {
+    all(password, next) {
+        if (password !== 'secret'){
+            return next('invalid password');
+        }
+
         var params = {
             TableName: table,
             Key:{
@@ -100,13 +142,29 @@ module.exports = class Rsvp {
             if (err) {
                 console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
             } else {
-                // TODO: Setup the response
                 console.log("Scan succeeded.");
-                data.Items.forEach(function(guest) {
-                    console.log(
-                        guest.lastname + ": ",
-                        guest.pin,
-                        "- info:", guest.info);
+                data.Items.forEach((guest) => {
+                    let confirmedGuests = [];
+                    let unconfirmedGuests = [];
+                    for (let i = 0; i < guest.members.length; i++) {
+                        const item = guest.members[i];
+                        if (item.confirmed) {
+                            confirmedGuests.push(item.name);
+                        }else{
+                            unconfirmedGuests.push(item.name);
+                        }
+                    }
+
+                    if (guest.hasPlusOne && guest.hasOwnProperty('plusOneName')){
+                        confirmedGuests.push(guest.plusOneName);
+                    }
+
+                    const prettyPrint = {
+                        group: guest.lastname,
+                        'confirmed': confirmedGuests,
+                        'unconfirmed': unconfirmedGuests
+                    };
+                    console.log(JSON.stringify(prettyPrint));
                 });
 
                 // continue scanning if we have more guests, because
