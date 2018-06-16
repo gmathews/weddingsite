@@ -45,35 +45,41 @@ module.exports = class Rsvp {
                 }
                 // Add all the data
                 console.log("Importing guests into DynamoDB. Please wait.");
-                const file = fs.readFileSync('./guests.csv', 'utf8');
-                console.log(file);
+                fs.readFile('./guests.csv', 'utf8', (err, file) => {
+                    if (err) {
+                        console.log(JSON.stringify(err));
+                        return;
+                    }
 
-                parse(file, {'relax_column_count': true}, (err, guestGroups) => {
-                    console.log('Error parsing CSV:', err);
-                    guestGroups.forEach((guestGroup) => {
-                        // FirstName LastName, SecondFirstName SecondLastName, ... +1, PIN
-                        let members = [];
-                        let hasPlusOne = false;
-                        const pin = guestGroup[guestGroup.length - 1];
-                        // Last item is the PIN, so don't bother parsing it
-                        for(let i = 0; i < guestGroup.length - 1; i++){
-                            const item = guestGroup[i];
-                            if(item === '+1'){
-                                hasPlusOne = true;
-                            }else{
-                                members.push({'name': item, 'confirmed': false});
-                            }
-                        }
-                        const rsvpname = guestGroup[0];
+                    console.log(file);
 
-                        addItem({
-                            TableName: table,
-                            Item: {
-                                'rsvpname': rsvpname,
-                                'pin': pin,
-                                'hasPlusOne': hasPlusOne,
-                                'members': members
+                    parse(file, {relax_column_count: true, trim: true}, (err, guestGroups) => {
+                        console.log('Error parsing CSV:', err);
+                        guestGroups.forEach((guestGroup) => {
+                            // FirstName LastName, SecondFirstName SecondLastName, ... +1, PIN
+                            let members = [];
+                            let hasPlusOne = false;
+                            const pin = guestGroup[guestGroup.length - 1];
+                            // Last item is the PIN, so don't bother parsing it
+                            for(let i = 0; i < guestGroup.length - 1; i++){
+                                const item = guestGroup[i];
+                                if(item === '+1'){
+                                    hasPlusOne = true;
+                                }else{
+                                    members.push({'name': item, 'confirmed': false});
+                                }
                             }
+                            const rsvpname = guestGroup[0];
+
+                            addItem({
+                                TableName: table,
+                                Item: {
+                                    'rsvpname': rsvpname,
+                                    'pin': pin,
+                                    'hasPlusOne': hasPlusOne,
+                                    'members': members
+                                }
+                            });
                         });
                     });
                 });
@@ -123,11 +129,7 @@ module.exports = class Rsvp {
         });
     }
 
-    all(password, next) {
-        if (password !== 'secret'){
-            return next('invalid password');
-        }
-
+    all(next) {
         var params = {
             TableName: table,
             Key:{
@@ -135,6 +137,8 @@ module.exports = class Rsvp {
                 "pin": ""
             }
         };
+
+        let listOfGuestGroups = [];
         this.docClient.scan(params, onScan);
 
         function onScan(err, data) {
@@ -142,11 +146,11 @@ module.exports = class Rsvp {
                 console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
             } else {
                 console.log("Scan succeeded.");
-                data.Items.forEach((guest) => {
+                // Go through everything, and format the way we need
+                for (let guest of data.Items) {
                     let confirmedGuests = [];
                     let unconfirmedGuests = [];
-                    for (let i = 0; i < guest.members.length; i++) {
-                        const item = guest.members[i];
+                    for (let item of guest.members) {
                         if (item.confirmed) {
                             confirmedGuests.push(item.name);
                         }else{
@@ -154,7 +158,8 @@ module.exports = class Rsvp {
                         }
                     }
 
-                    if (guest.hasPlusOne && guest.hasOwnProperty('plusOneName')){
+                    // Plus one, if confirmed will be part of the guest list
+                    if (guest.hasPlusOne && guest.hasOwnProperty('plusOneName')) {
                         confirmedGuests.push(guest.plusOneName);
                     }
 
@@ -163,8 +168,11 @@ module.exports = class Rsvp {
                         'confirmed': confirmedGuests,
                         'unconfirmed': unconfirmedGuests
                     };
-                    console.log(JSON.stringify(prettyPrint));
-                });
+                    if (guest.hasPlusOne) {
+                        prettyPrint.hasPlusOne = guest.hasPlusOne;
+                    }
+                    listOfGuestGroups.push(prettyPrint);
+                }
 
                 // continue scanning if we have more guests, because
                 // scan can retrieve a maximum of 1MB of data
@@ -172,6 +180,9 @@ module.exports = class Rsvp {
                     console.log("Scanning for more...");
                     params.ExclusiveStartKey = data.LastEvaluatedKey;
                     this.docClient.scan(params, onScan);
+                }else{
+                    // Only send data at the very end
+                    next(listOfGuestGroups);
                 }
             }
         }

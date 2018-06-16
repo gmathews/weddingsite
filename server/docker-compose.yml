@@ -6,8 +6,15 @@ services:
             - "8000:8000"
     app:
         build: .
+        # Allow the inspector to connect if desired
+        command: nodemon --inspect=5858
+        # This makes our development environment reload code every time it changes
+        volumes:
+            - .:/usr/src/app
+            - /usr/src/app/node_modules
         ports:
             - "8080:8080"
+            - "5858:5858"
         depends_on:
             - dynamodb
         environment:

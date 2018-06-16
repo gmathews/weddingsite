@@ -50,8 +50,7 @@ app.route('/rsvp')
 
 app.get('/rsvp/all', (req, res) => {
     console.log(req.body);
-    let password = req.query.password;
-    rsvp.all(password, (err, data) => {
+    rsvp.all((err, data) => {
         if(err){
             res.status(404).send(err);
         }else{
