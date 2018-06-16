@@ -11,11 +11,11 @@ module.exports = class Rsvp {
         const params = {
             TableName : table,
             KeySchema: [
-                { AttributeName: "lastname", KeyType: "HASH"},  //Partition key
+                { AttributeName: "rsvpname", KeyType: "HASH"},  //Partition key
                 { AttributeName: "pin", KeyType: "RANGE" }  //Sort key
             ],
             AttributeDefinitions: [
-                { AttributeName: "lastname", AttributeType: "S" },
+                { AttributeName: "rsvpname", AttributeType: "S" },
                 { AttributeName: "pin", AttributeType: "S" }
             ],
             ProvisionedThroughput: {
@@ -64,13 +64,12 @@ module.exports = class Rsvp {
                                 members.push({'name': item, 'confirmed': false});
                             }
                         }
-                        const firstPerson = guestGroup[0].split(' ');
-                        const lastname = firstPerson[firstPerson.length - 1];
+                        const rsvpname = guestGroup[0];
 
                         addItem({
                             TableName: table,
                             Item: {
-                                'lastname': lastname,
+                                'rsvpname': rsvpname,
                                 'pin': pin,
                                 'hasPlusOne': hasPlusOne,
                                 'members': members
@@ -86,7 +85,7 @@ module.exports = class Rsvp {
         let params = {
             TableName: table,
             Key: {
-                "lastname": name,
+                "rsvpname": name,
                 "pin": pin
             }
         };
@@ -107,12 +106,12 @@ module.exports = class Rsvp {
         let params = {
             TableName: table,
             Key: {
-                "lastname": data.lastname,
+                "rsvpname": data.rsvpname,
                 "pin": data.pin
                 // TODO: filter data, don't all users to add extra stuff or change read only fields
             },
             // Only update if item already exists
-            ConditionExpression: "attribute_exists(lastname)"
+            ConditionExpression: "attribute_exists(rsvpname)"
         };
         this.docClient.update(params, function(err, data) {
             if (err) {
@@ -132,7 +131,7 @@ module.exports = class Rsvp {
         var params = {
             TableName: table,
             Key:{
-                "lastname": "",
+                "rsvpname": "",
                 "pin": ""
             }
         };
@@ -160,7 +159,7 @@ module.exports = class Rsvp {
                     }
 
                     const prettyPrint = {
-                        group: guest.lastname,
+                        group: guest.rsvpname,
                         'confirmed': confirmedGuests,
                         'unconfirmed': unconfirmedGuests
                     };
