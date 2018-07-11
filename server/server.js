@@ -23,6 +23,12 @@ const app = express();
 app.use(bodyParser.json());
 // for parsing application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({extended: true}));
+// Setup CORS for security
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");// TODO: tighten to specific URL?
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 
 app.route('/rsvp')
     .get((req, res) => {
@@ -47,7 +53,9 @@ app.route('/rsvp')
             }
         });
     });
+//TODO: add add with jwt auth middleware to add more guests later
 
+// TODO: add jwt auth middleware
 app.get('/rsvp/all', (req, res) => {
     console.log(req.body);
     rsvp.all((err, data) => {

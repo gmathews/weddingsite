@@ -1,5 +1,28 @@
-<form method="GET" action="rsvp">
-    <input type=text name="lastname">
-    <input type=text name="pin">
-    <input type=submit name=press value="OK">
-</form>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- <meta property="og:image" content="http://www.teamhangloosegetsmarried.com/preview.jpg"> -->
+        <!-- <meta property="og:url" content="http://www.teamhangloosegetsmarried.com"> -->
+        <meta property="og:title" content="RSVP for George and Kris' wedding">
+        <meta property="og:description" content="RSVP for George and Kris' wedding">
+        <meta property="og:type" content="website">
+        <title>RSVP for George and Kris' wedding</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <form method="GET" action="rsvp">
+            <input id="name" type=text name="lastname">
+            <input id="pin" type=text name="pin">
+        </form>
+
+        <div class="rsvpData">
+            <p id="rsvpData">&lt;</p>
+        </div>
+        <div class="submit" onmousedown="requestRSVP()">
+            <a id="submit"  href="#">[Press Here]</a>
+        </div>
+        <script src="main.js" type="application/javascript"></script>
+    </body>
+</html>
