@@ -25,15 +25,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 // Setup CORS for security
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");// TODO: tighten to specific URL?
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header('Access-Control-Allow-Origin', '*');// TODO: tighten to specific URL?
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
     next();
 });
 
 app.route('/rsvp')
     .get((req, res) => {
-        console.log(req.query);
-        let name = req.query.lastname;
+        console.log('/rsvp GET', req.query);
+        let name = req.query.rsvpname;
         let pin = req.query.pin;
         rsvp.get(name, pin, (err, data) => {
             if(err){
@@ -44,7 +45,7 @@ app.route('/rsvp')
         });
     })
     .put((req, res) => {
-        console.log(req.body);
+        console.log('/rsvp PUT', req.body);
         rsvp.update(req.body, (err, data) => {
             if(err){
                 res.status(500).send(err);
@@ -57,7 +58,7 @@ app.route('/rsvp')
 
 // TODO: add jwt auth middleware
 app.get('/rsvp/all', (req, res) => {
-    console.log(req.body);
+    console.log('/rsvp/all GET', req.body);
     rsvp.all((err, data) => {
         if(err){
             res.status(404).send(err);

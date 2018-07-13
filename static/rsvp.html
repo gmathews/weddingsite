@@ -12,16 +12,26 @@
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
-        <form method="GET" action="rsvp">
-            <input id="name" type=text name="lastname">
-            <input id="pin" type=text name="pin">
-        </form>
+        <div class="search" id="search">
+            <form method="GET" action="rsvp">
+                <input id="name" type=text name="name">
+                <input id="pin" type=text name="pin">
+            </form>
 
-        <div class="rsvpData">
-            <p id="rsvpData">&lt;</p>
+            <div class="submit" onmousedown="requestRSVP()">
+                <p>Continue</p>
+            </div>
         </div>
-        <div class="submit" onmousedown="requestRSVP()">
-            <a id="submit"  href="#">[Press Here]</a>
+        <div class="guestselection" id="guestselection">
+            <div class="rsvpData">
+                <p id="rsvpData">Please RSVP</p>
+            </div>
+            <div class="submit" onmousedown="requestConfirmation()">
+                <p>Submit</p>
+            </div>
+        </div>
+        <div class="confirmation" id="confirmation" >
+            <p>Confirmed</p>
         </div>
         <script src="main.js" type="application/javascript"></script>
     </body>

@@ -57,7 +57,7 @@ module.exports = class Rsvp {
                         console.log('Error parsing CSV:', err);
                         guestGroups.forEach((guestGroup) => {
                             // FirstName LastName, SecondFirstName SecondLastName, ... +1, PIN
-                            let members = [];
+                            let members = {};
                             let hasPlusOne = false;
                             const pin = guestGroup[guestGroup.length - 1];
                             // Last item is the PIN, so don't bother parsing it
@@ -66,7 +66,7 @@ module.exports = class Rsvp {
                                 if(item === '+1'){
                                     hasPlusOne = true;
                                 }else{
-                                    members.push({'name': item, 'confirmed': false});
+                                    members[item] = false;
                                 }
                             }
                             const rsvpname = guestGroup[0];
@@ -87,11 +87,11 @@ module.exports = class Rsvp {
         });
     }
 
-    get(name, pin, next) {
+    get(rsvpname, pin, next) {
         let params = {
             TableName: table,
             Key: {
-                "rsvpname": name,
+                "rsvpname": rsvpname,
                 "pin": pin
             }
         };
@@ -114,10 +114,15 @@ module.exports = class Rsvp {
             Key: {
                 "rsvpname": data.rsvpname,
                 "pin": data.pin
-                // TODO: filter data, don't all users to add extra stuff or change read only fields
+            },
+            // TODO: filter data, don't all users to add extra stuff or change read only fields
+            UpdateExpression: "set members = :m",
+            ExpressionAttributeValues:{
+                ":m":data.members
             },
             // Only update if item already exists
-            ConditionExpression: "attribute_exists(rsvpname)"
+            ConditionExpression: "attribute_exists(rsvpname)",
+            ReturnValues:"UPDATED_NEW"
         };
         this.docClient.update(params, function(err, data) {
             if (err) {
@@ -150,11 +155,11 @@ module.exports = class Rsvp {
                 for (let guest of data.Items) {
                     let confirmedGuests = [];
                     let unconfirmedGuests = [];
-                    for (let item of guest.members) {
-                        if (item.confirmed) {
-                            confirmedGuests.push(item.name);
+                    for (let name of Object.getOwnPropertyNames(guest.members)) {
+                        if (guest.members[name]) {
+                            confirmedGuests.push(name);
                         }else{
-                            unconfirmedGuests.push(item.name);
+                            unconfirmedGuests.push(name);
                         }
                     }
 
