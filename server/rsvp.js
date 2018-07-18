@@ -96,15 +96,17 @@ module.exports = class Rsvp {
             }
         };
         this.docClient.get(params, function(err, data) {
+            let item = {};
             if (err) {
                 console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
             } else {
                 if(Object.keys(data).length === 0) {
                     err = "name or pin wrong";
                 }
+                item = data.Item;
                 console.log("GetItem succeeded:", JSON.stringify(data, null, 2));
             }
-            next(err, data);
+            next(err, item);
         });
     }
 
@@ -124,14 +126,16 @@ module.exports = class Rsvp {
             ConditionExpression: "attribute_exists(rsvpname)",
             ReturnValues:"UPDATED_NEW"
         };
-        this.docClient.update(params, function(err, data) {
-            if (err) {
-                console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
-            } else {
-                console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
-            }
-            next(err, data);
-        });
+        console.log(params);
+        next(null, data);
+        // this.docClient.update(params, function(err, data) {
+        //     if (err) {
+        //         console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+        //     } else {
+        //         console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+        //     }
+        //     next(err, data);
+        // });
     }
 
     all(next) {

@@ -2,8 +2,8 @@ version: '3'
 services:
     dynamodb:
         image: dwmkerr/dynamodb
-        ports:
-            - "8000:8000"
+        # ports:
+        #     - "8000:8000"
     app:
         build: .
         # Allow the inspector to connect if desired

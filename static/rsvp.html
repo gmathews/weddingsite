@@ -13,22 +13,23 @@
     </head>
     <body>
         <div class="search" id="search">
-            <form method="GET" action="rsvp">
-                <input id="name" type=text name="name">
-                <input id="pin" type=text name="pin">
+            <form id="searchForm" action="#">
+                <Label>Full name</Label><input title="Full name(First Last)" type=text name="name" id="searchName">
+                <Label>ZIP Code</Label><input title="ZIP Code" type=text name="zipcode" id="searchZipcode">
+                <input type="submit" value="Submit">
             </form>
-
-            <div class="submit" onmousedown="requestRSVP()">
-                <p>Continue</p>
-            </div>
         </div>
         <div class="guestselection" id="guestselection">
             <div class="rsvpData">
                 <p id="rsvpData">Please RSVP</p>
             </div>
-            <div class="submit" onmousedown="requestConfirmation()">
-                <p>Submit</p>
-            </div>
+            <form id="guestForm" action="#">
+                <div class="guest" id="guestCheckbox">
+                    <input type="checkbox" name="name"><Label class="guest">Name</Label>
+                </div>
+                <input type="text" title="Name of Guest" id="plusOneName">
+                <input type="submit" value="Submit" id="guestSelectionSubmit">
+            </form>
         </div>
         <div class="confirmation" id="confirmation" >
             <p>Confirmed</p>

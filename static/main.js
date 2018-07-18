@@ -22,9 +22,11 @@ function fillOutSearchForm(){
     // Show our new page
     let item = document.getElementById('search');
     item.style.display = 'block';
+    document.getElementById('searchForm').addEventListener('submit', requestRSVP);
 }
 
 function fillOutGuestSelection(invitationData){
+    console.log( 'guest data', invitationData);
     hideSearch();
     hideConfirmation();
 
@@ -32,12 +34,39 @@ function fillOutGuestSelection(invitationData){
     let item = document.getElementById('guestselection');
     item.style.display = 'block';
 
-    // TODO: display guestselection div and populate selection field
-    let rsvpData = document.getElementById('rsvpData');
-    rsvpData.innerHTML = JSON.stringify(invitationData);
+    // Create form from data
+    let form = document.getElementById('guestForm');
+    let clonableCheckbox = document.getElementById('guestCheckbox');
+    let plusOneName = document.getElementById('plusOneName');
+
+    let startedCloning = false;
+    function setupInput(elem, name, value){
+        elem.children[0].checked = value;
+        elem.children[0].name = name;
+        elem.children[1].innerText = name;
+    }
+    for(let guest in invitationData.members){
+        // Set wither we are checked or not
+        if(!startedCloning){
+            setupInput(clonableCheckbox, guest, invitationData.members[guest]);
+            startedCloning = true;
+        }else{
+            let newGuest = clonableCheckbox.cloneNode(true);
+            setupInput(newGuest, guest, invitationData.members[guest]);
+            form.insertBefore(newGuest, plusOneName);
+        }
+    }
+    // Hide plus one option if needed
+    if(invitationData.hasPlusOne){
+        plusOneName.style.display = 'block';
+    }else{
+        plusOneName.style.display = 'none';
+    }
+    form.addEventListener('submit', requestConfirmation);
 }
 
 function fillOutConfirmation(confirmationData){
+    console.log( 'confirmation data', confirmationData);
     hideSearch();
     hideGuestSelection();
 
@@ -46,10 +75,12 @@ function fillOutConfirmation(confirmationData){
     item.style.display = 'block';
 }
 
-function requestRSVP(){
+function requestRSVP(e){
+    e.preventDefault(); // Don't actually submit
     let url = new URL(server + '/rsvp');
-    let params = {rsvpname: 'George Mathews', pin: '90066'};
-    Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+    // Get our parameters
+    url.searchParams.append('rsvpname', document.getElementById('searchName').value);
+    url.searchParams.append('pin', document.getElementById('searchZipcode').value);
 
     fetch(url, {mode: 'cors'})
     .then((res) => {
@@ -61,7 +92,6 @@ function requestRSVP(){
         return res.json();
     })
     .then((data) => {
-        console.log('Search', JSON.stringify(data));
         fillOutGuestSelection(data);
     })
     .catch((err) => {
@@ -70,21 +100,23 @@ function requestRSVP(){
     });
 }
 
-function requestConfirmation(){
+function requestConfirmation(e){
+    e.preventDefault(); // Don't actually submit
     let url = new URL(server + '/rsvp');
-    let updateData = {
-        rsvpname: 'George Mathews',
-        pin: '90066',
-        "members": {
-            'George Mathews':false,
-            'Kris Alvarado':false
-        }
+
+    // TODO: Get our parameters
+    let formData = {
     };
 
-    fetch(url, {mode: 'cors', method: 'PUT', headers: {
+    fetch(url, {
+        mode: 'cors',
+        method: 'PUT',
+        headers: {
             "Content-Type": "application/json; charset=utf-8",
             // "Content-Type": "application/x-www-form-urlencoded",
-        },body: JSON.stringify(updateData)})
+        },
+        body: JSON.stringify(formData)
+    })
     .then((res) => {
         // Handle any error codes
         if(!res.ok){
@@ -94,7 +126,6 @@ function requestConfirmation(){
         return res.json();
     })
     .then((data) => {
-        console.log('Confirmation', JSON.stringify(data));
         fillOutConfirmation(data);
     })
     .catch((err) => {
