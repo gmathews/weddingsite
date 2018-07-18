@@ -1,18 +1,23 @@
 const server = "http://localhost:8080"
 
 function hideSearch(){
-    let item = document.getElementById('search');
-    item.style.display = 'none';
+    hideElement(document.getElementById('search'));
 }
 
 function hideGuestSelection(){
-    let item = document.getElementById('guestselection');
-    item.style.display = 'none';
+    hideElement(document.getElementById('guestselection'));
 }
 
 function hideConfirmation(){
-    let item = document.getElementById('confirmation');
-    item.style.display = 'none';
+    hideElement(document.getElementById('confirmation'));
+}
+
+function hideElement(elem){
+    elem.style.display = 'none';
+}
+
+function showElement(elem){
+    elem.style.display = 'block';
 }
 
 function fillOutSearchForm(){
@@ -20,19 +25,17 @@ function fillOutSearchForm(){
     hideConfirmation();
 
     // Show our new page
-    let item = document.getElementById('search');
-    item.style.display = 'block';
+    showElement(document.getElementById('search'));
     document.getElementById('searchForm').addEventListener('submit', requestRSVP);
 }
 
 function fillOutGuestSelection(invitationData){
-    console.log( 'guest data', invitationData);
+    guestDataUiElements = {members:[]};// Global
     hideSearch();
     hideConfirmation();
 
     // Show our new page
-    let item = document.getElementById('guestselection');
-    item.style.display = 'block';
+    showElement(document.getElementById('guestselection'));
 
     // Create form from data
     let form = document.getElementById('guestForm');
@@ -44,6 +47,7 @@ function fillOutGuestSelection(invitationData){
         elem.children[0].checked = value;
         elem.children[0].name = name;
         elem.children[1].innerText = name;
+        guestDataUiElements.members.push(elem.children[0]);
     }
     for(let guest in invitationData.members){
         // Set wither we are checked or not
@@ -58,21 +62,32 @@ function fillOutGuestSelection(invitationData){
     }
     // Hide plus one option if needed
     if(invitationData.hasPlusOne){
-        plusOneName.style.display = 'block';
+        showElement(plusOneName);
+        guestDataUiElements.plusOneName = plusOneName;
     }else{
-        plusOneName.style.display = 'none';
+        hideElement(plusOneName);
     }
     form.addEventListener('submit', requestConfirmation);
 }
 
 function fillOutConfirmation(confirmationData){
-    console.log( 'confirmation data', confirmationData);
     hideSearch();
     hideGuestSelection();
 
     // Show our new page
-    let item = document.getElementById('confirmation');
-    item.style.display = 'block';
+    showElement(document.getElementById('confirmation'));
+    let yes = document.getElementById('confirmationyes');
+    let no = document.getElementById('confirmationno');
+    // Select which option to display
+    if(confirmationData.coming){
+        showElement(yes);
+        hideElement(no);
+        // = confirmationData.name;
+    }else{
+        showElement(no);
+        hideElement(yes);
+        // = confirmationData.name;
+    }
 }
 
 function requestRSVP(e){
@@ -103,10 +118,16 @@ function requestRSVP(e){
 function requestConfirmation(e){
     e.preventDefault(); // Don't actually submit
     let url = new URL(server + '/rsvp');
-
-    // TODO: Get our parameters
+    // Get our parameters
     let formData = {
+        members: {}
     };
+    for(let guestUiElem of guestDataUiElements.members){
+        formData.members[guestUiElem.name] = guestUiElem.checked;
+    }
+    if(guestDataUiElements.hasOwnProperty('plusOneName')){
+        formData.plusOneName = guestDataUiElements.plusOneName.value;
+    }
 
     fetch(url, {
         mode: 'cors',

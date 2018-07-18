@@ -127,7 +127,7 @@ module.exports = class Rsvp {
             ReturnValues:"UPDATED_NEW"
         };
         console.log(params);
-        next(null, data);
+        next(null, {coming: true, name: data.rsvpname});
         // this.docClient.update(params, function(err, data) {
         //     if (err) {
         //         console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
