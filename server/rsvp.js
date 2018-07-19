@@ -117,25 +117,43 @@ module.exports = class Rsvp {
                 "rsvpname": data.rsvpname,
                 "pin": data.pin
             },
-            // TODO: filter data, don't all users to add extra stuff or change read only fields
+            // Filter data, don't allow users to add extra stuff or change read only fields
+            // NOTE: Don't allow data.hasPlusOne to be changed
+            // TODO: Don't allow members keys to be changed, only allow the bool value
+            // TODO: Change to members.name1, members.name2, etc to prevent changes
             UpdateExpression: "set members = :m",
             ExpressionAttributeValues:{
-                ":m":data.members
+                ":m": data.members
             },
             // Only update if item already exists
             ConditionExpression: "attribute_exists(rsvpname)",
-            ReturnValues:"UPDATED_NEW"
+            ReturnValues:"ALL_NEW"
         };
+        // Don't allow plushOneName to be set if we don't have data.hasPlusOne set to true
+        if(data.plusOneName){
+            params.ConditionExpression += " AND hasPlusOne = true";
+            params.ExpressionAttributeValues[":n"] = data.plusOneName;
+            params.UpdateExpression += ", plusOneName = :n";
+        }
         console.log(params);
-        next(null, {coming: true, name: data.rsvpname});
-        // this.docClient.update(params, function(err, data) {
-        //     if (err) {
-        //         console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
-        //     } else {
-        //         console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
-        //     }
-        //     next(err, data);
-        // });
+        this.docClient.update(params, function(err, updatedData) {
+            if (err) {
+                console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+            } else {
+                console.log("UpdateItem succeeded:", JSON.stringify(updatedData, null, 2));
+            }
+            // See if they are coming
+            let coming = false;
+            let name = updatedData.rsvpname;
+            for (let name of Object.getOwnPropertyNames(updatedData.members)) {
+                if (updatedData.members[name]) {
+                    coming = true;
+                    break;
+                }
+            }
+            let result = {coming: coming, name: name };
+            next(err, result);
+        });
     }
 
     all(next) {

@@ -1,4 +1,4 @@
-const server = "http://localhost:8080"
+const server = "http://localhost:8080/api"
 
 function hideSearch(){
     hideElement(document.getElementById('search'));
@@ -30,12 +30,17 @@ function fillOutSearchForm(){
 }
 
 function fillOutGuestSelection(invitationData){
-    guestDataUiElements = {members:[]};// Global
     hideSearch();
     hideConfirmation();
 
     // Show our new page
     showElement(document.getElementById('guestselection'));
+
+    // Global data, used later
+    G_guestDataUiElements = {members:[]};
+    G_pin = invitationData.pin;
+    G_rsvpname = invitationData.rsvpname;
+    // End global data
 
     // Create form from data
     let form = document.getElementById('guestForm');
@@ -47,7 +52,7 @@ function fillOutGuestSelection(invitationData){
         elem.children[0].checked = value;
         elem.children[0].name = name;
         elem.children[1].innerText = name;
-        guestDataUiElements.members.push(elem.children[0]);
+        G_guestDataUiElements.members.push(elem.children[0]);
     }
     for(let guest in invitationData.members){
         // Set wither we are checked or not
@@ -63,11 +68,17 @@ function fillOutGuestSelection(invitationData){
     // Hide plus one option if needed
     if(invitationData.hasPlusOne){
         showElement(plusOneName);
-        guestDataUiElements.plusOneName = plusOneName;
+        G_guestDataUiElements.plusOneName = plusOneName;
     }else{
         hideElement(plusOneName);
     }
     form.addEventListener('submit', requestConfirmation);
+}
+
+function setGuestsName(elem, name){
+    let str = elem.children[0].innerHTML;
+    // TODO: Do the first name?
+    elem.children[0].innerHTML = str.replace('{{name}}', name);
 }
 
 function fillOutConfirmation(confirmationData){
@@ -82,11 +93,11 @@ function fillOutConfirmation(confirmationData){
     if(confirmationData.coming){
         showElement(yes);
         hideElement(no);
-        // = confirmationData.name;
+        setGuestsName(yes, confirmationData.name);
     }else{
         showElement(no);
         hideElement(yes);
-        // = confirmationData.name;
+        setGuestsName(no, confirmationData.name);
     }
 }
 
@@ -120,13 +131,15 @@ function requestConfirmation(e){
     let url = new URL(server + '/rsvp');
     // Get our parameters
     let formData = {
+        pin: G_pin,
+        rsvpname: G_rsvpname,
         members: {}
     };
-    for(let guestUiElem of guestDataUiElements.members){
+    for(let guestUiElem of G_guestDataUiElements.members){
         formData.members[guestUiElem.name] = guestUiElem.checked;
     }
-    if(guestDataUiElements.hasOwnProperty('plusOneName')){
-        formData.plusOneName = guestDataUiElements.plusOneName.value;
+    if(G_guestDataUiElements.hasOwnProperty('plusOneName')){
+        formData.plusOneName = G_guestDataUiElements.plusOneName.value;
     }
 
     fetch(url, {

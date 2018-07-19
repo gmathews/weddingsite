@@ -31,7 +31,7 @@ app.use(function(req, res, next) {
     next();
 });
 
-app.route('/rsvp')
+app.route('/api/rsvp')
     .get((req, res) => {
         console.log('/rsvp GET', req.query);
         let name = req.query.rsvpname;
@@ -57,7 +57,7 @@ app.route('/rsvp')
 //TODO: add add with jwt auth middleware to add more guests later
 
 // TODO: add jwt auth middleware
-app.get('/rsvp/all', (req, res) => {
+app.get('/api/rsvp/all', (req, res) => {
     console.log('/rsvp/all GET', req.body);
     rsvp.all((err, data) => {
         if(err){
