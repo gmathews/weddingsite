@@ -126,32 +126,39 @@ module.exports = class Rsvp {
                 ":m": data.members
             },
             // Only update if item already exists
-            ConditionExpression: "attribute_exists(rsvpname)",
+            // ConditionExpression: "attribute_exists(rsvpname)",
             ReturnValues:"ALL_NEW"
         };
-        // Don't allow plushOneName to be set if we don't have data.hasPlusOne set to true
-        if(data.plusOneName){
-            params.ConditionExpression += " AND hasPlusOne = true";
-            params.ExpressionAttributeValues[":n"] = data.plusOneName;
-            params.UpdateExpression += ", plusOneName = :n";
+
+        // Manipulate our plus one name
+        if(data.hasOwnProperty('plusOneName')){
+            if(!data.plusOneName){ // Remove the plus one
+                params.UpdateExpression += " remove plusOneName";
+            }else{ // Assign a plus one
+                // TODO: Don't allow plushOneName to be set if we don't have data.hasPlusOne set to true
+                // params.ConditionExpression += " AND hasPlusOne = true";
+                params.ExpressionAttributeValues[":n"] = data.plusOneName;
+                params.UpdateExpression += ", plusOneName = :n";
+            }
         }
         console.log(params);
         this.docClient.update(params, function(err, updatedData) {
+            let result = {};
             if (err) {
                 console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
             } else {
                 console.log("UpdateItem succeeded:", JSON.stringify(updatedData, null, 2));
-            }
-            // See if they are coming
-            let coming = false;
-            let name = updatedData.rsvpname;
-            for (let name of Object.getOwnPropertyNames(updatedData.members)) {
-                if (updatedData.members[name]) {
-                    coming = true;
-                    break;
+                // See if they are coming
+                let coming = false;
+                let name = updatedData.Attributes.rsvpname;
+                for (let name of Object.getOwnPropertyNames(updatedData.Attributes.members)) {
+                    if (updatedData.Attributes.members[name]) {
+                        coming = true;
+                        break;
+                    }
                 }
+                result = {coming: coming, name: name };
             }
-            let result = {coming: coming, name: name };
             next(err, result);
         });
     }

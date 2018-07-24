@@ -68,6 +68,11 @@ function fillOutGuestSelection(invitationData){
     // Hide plus one option if needed
     if(invitationData.hasPlusOne){
         showElement(plusOneName);
+        // We haven't set our plus one name yet
+        if(!invitationData.hasOwnProperty('plusOneName')){
+            invitationData.plusOneName = '';
+        }
+        plusOneName.value = invitationData.plusOneName;
         G_guestDataUiElements.plusOneName = plusOneName;
     }else{
         hideElement(plusOneName);
