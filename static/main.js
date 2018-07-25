@@ -1,5 +1,15 @@
 const server = "http://localhost:8080/api"
 
+function handleError(errorMsg){
+    console.log(errorMsg);
+    let errorHandler = document.getElementById('errorMsg');
+    showElement(errorHandler);
+    errorHandler.innerHTML = errorMsg;
+}
+function hideError(){
+    hideElement(document.getElementById('errorMsg'));
+}
+
 function hideSearch(){
     hideElement(document.getElementById('search'));
 }
@@ -23,6 +33,7 @@ function showElement(elem){
 function fillOutSearchForm(){
     hideGuestSelection();
     hideConfirmation();
+    hideError();
 
     // Show our new page
     showElement(document.getElementById('search'));
@@ -32,6 +43,7 @@ function fillOutSearchForm(){
 function fillOutGuestSelection(invitationData){
     hideSearch();
     hideConfirmation();
+    hideError();
 
     // Show our new page
     showElement(document.getElementById('guestselection'));
@@ -89,6 +101,7 @@ function setGuestsName(elem, name){
 function fillOutConfirmation(confirmationData){
     hideSearch();
     hideGuestSelection();
+    hideError();
 
     // Show our new page
     showElement(document.getElementById('confirmation'));
@@ -119,17 +132,13 @@ function requestRSVP(e){
     .then((res) => {
         // Handle any error codes
         if(!res.ok){
-            // TODO: Better error handling
-            throw new Error(res.statusText);
+            res.text().then(handleError);
+        }else{
+            res.json().then(fillOutGuestSelection);
         }
-        return res.json();
-    })
-    .then((data) => {
-        fillOutGuestSelection(data);
     })
     .catch((err) => {
-        // TODO: error handling
-        console.log(err);
+        handleError(err);
     });
 }
 
@@ -161,17 +170,13 @@ function requestConfirmation(e){
     .then((res) => {
         // Handle any error codes
         if(!res.ok){
-            // TODO: Better error handling
-            throw new Error(res.statusText);
+            res.text().then(handleError);
+        }else{
+            res.json().then(fillOutConfirmation);
         }
-        return res.json();
-    })
-    .then((data) => {
-        fillOutConfirmation(data);
     })
     .catch((err) => {
-        // TODO: error handling
-        console.log(err);
+        handleError(err);
     });
 }
 
