@@ -10,6 +10,7 @@ COPY package*.json ./
 
 # Used only in development
 RUN npm install -g nodemon
+RUN npm install -g mocha
 
 RUN npm install
 # If you are building your code for production
