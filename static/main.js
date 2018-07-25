@@ -61,10 +61,13 @@ function fillOutGuestSelection(invitationData){
 
     let startedCloning = false;
     function setupInput(elem, name, value){
-        elem.children[0].checked = value;
-        elem.children[0].name = name;
-        elem.children[1].innerText = name;
-        G_guestDataUiElements.members.push(elem.children[0]);
+        let label = elem.getElementsByTagName('label')[0];
+        let checkbox = label.getElementsByTagName('input')[0];
+        checkbox.checked = value;
+        checkbox.name = name;
+        // Set the label
+        label.lastChild.textContent = name;
+        G_guestDataUiElements.members.push(checkbox);
     }
     for(let guest in invitationData.members){
         // Set wither we are checked or not
