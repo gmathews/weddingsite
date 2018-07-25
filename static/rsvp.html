@@ -12,29 +12,53 @@
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
+        <ul class="header">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="registry.html">Registry</a></li>
+            <li><a href="info.html">Directions &amp; Time</a></li>
+        </ul>
         <div class="search" id="search">
             <form id="searchForm" action="#">
-                <Label>Full name</Label><input title="Full name(First Last)" type=text name="name" id="searchName">
-                <Label>ZIP Code</Label><input title="ZIP Code" type=text name="zipcode" id="searchZipcode">
-                <input type="submit" value="Submit">
+                <div>
+                    <p>Enter the first full name(First &amp; Last) listed on your invitation.</p>
+                    <input title="Full name(First Last)" type=text name="name" id="searchName">
+                </div>
+                <div>
+                    <p>Enter your ZIP Code</p>
+                    <input title="ZIP Code" type=text name="zipcode" id="searchZipcode">
+                </div>
+                <div> <input type="submit" value="Continue"> </div>
             </form>
         </div>
         <div class="guestselection" id="guestselection">
+            <a href="rsvp.html">If this isn't you, go here to return.</a>
             <div class="rsvpData">
-                <p id="rsvpData">Please RSVP</p>
+                <p>Please check the box next to the name of every person who will get to see Team Hangloose get married in person.</p>
             </div>
             <form id="guestForm" action="#">
-                <div class="guest" id="guestCheckbox">
-                    <input type="checkbox" name="name"><Label class="guest">Name</Label>
+                <ul class="guest" id="guestList">
+                    <li id="guestCheckbox">
+                        <input type="checkbox" name="name"><Label>Name</Label>
+                    </li>
+                </ul>
+                <div id="plusOne">
+                    <p>If you are bringing a guest, enter their full name(First &amp; Last) here, or leave blank if not.</p>
+                    <input type="text" title="Name of Guest" id="plusOneName">
                 </div>
-                <input type="text" title="Name of Guest" id="plusOneName">
                 <input type="submit" value="Submit" id="guestSelectionSubmit">
             </form>
         </div>
         <div class="confirmation" id="confirmation">
-            <div id="confirmationyes"><p>Thanks for coming {{name}}</p></div>
-            <div id="confirmationno"><p>Sorry we won't get to see you {{name}}</p></div>
+            <p id="confirmationthanks">Thanks {{name}}, for your response.</p>
+            <p id="confirmationyes">We look forward to sharing our special day with you.</p>
+            <p id="confirmationno">We are sorry you can't make it.</p>
+        </div>
+        <div class="footer">
+            <p>
+            Sunday, October 14th, 2018 in Sylmar, CA
+            </p>
         </div>
         <script src="main.js" type="application/javascript"></script>
+
     </body>
 </html>

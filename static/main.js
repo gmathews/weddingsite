@@ -43,9 +43,9 @@ function fillOutGuestSelection(invitationData){
     // End global data
 
     // Create form from data
-    let form = document.getElementById('guestForm');
+    let guestList = document.getElementById('guestList');
     let clonableCheckbox = document.getElementById('guestCheckbox');
-    let plusOneName = document.getElementById('plusOneName');
+    let plusOneForm = document.getElementById('plusOne');
 
     let startedCloning = false;
     function setupInput(elem, name, value){
@@ -62,28 +62,28 @@ function fillOutGuestSelection(invitationData){
         }else{
             let newGuest = clonableCheckbox.cloneNode(true);
             setupInput(newGuest, guest, invitationData.members[guest]);
-            form.insertBefore(newGuest, plusOneName);
+            guestList.appendChild(newGuest);
         }
     }
     // Hide plus one option if needed
     if(invitationData.hasPlusOne){
-        showElement(plusOneName);
+        showElement(plusOneForm);
         // We haven't set our plus one name yet
         if(!invitationData.hasOwnProperty('plusOneName')){
             invitationData.plusOneName = '';
         }
+        let plusOneName = document.getElementById('plusOneName');
         plusOneName.value = invitationData.plusOneName;
         G_guestDataUiElements.plusOneName = plusOneName;
     }else{
-        hideElement(plusOneName);
+        hideElement(plusOneForm);
     }
-    form.addEventListener('submit', requestConfirmation);
+    document.getElementById('guestForm').addEventListener('submit', requestConfirmation);
 }
 
 function setGuestsName(elem, name){
-    let str = elem.children[0].innerHTML;
-    // TODO: Do the first name?
-    elem.children[0].innerHTML = str.replace('{{name}}', name);
+    let str = elem.innerHTML;
+    elem.innerHTML = str.replace('{{name}}', name);
 }
 
 function fillOutConfirmation(confirmationData){
@@ -94,15 +94,17 @@ function fillOutConfirmation(confirmationData){
     showElement(document.getElementById('confirmation'));
     let yes = document.getElementById('confirmationyes');
     let no = document.getElementById('confirmationno');
+    let thanks = document.getElementById('confirmationthanks');
+
+    // Set our thanks
+    setGuestsName(thanks, confirmationData.name);
     // Select which option to display
     if(confirmationData.coming){
         showElement(yes);
         hideElement(no);
-        setGuestsName(yes, confirmationData.name);
     }else{
         showElement(no);
         hideElement(yes);
-        setGuestsName(no, confirmationData.name);
     }
 }
 

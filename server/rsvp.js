@@ -150,7 +150,8 @@ module.exports = class Rsvp {
                 console.log("UpdateItem succeeded:", JSON.stringify(updatedData, null, 2));
                 // See if they are coming
                 let coming = false;
-                let name = updatedData.Attributes.rsvpname;
+                // Do the first name?
+                let name = updatedData.Attributes.rsvpname.split(' ')[0];
                 for (let name of Object.getOwnPropertyNames(updatedData.Attributes.members)) {
                     if (updatedData.Attributes.members[name]) {
                         coming = true;
