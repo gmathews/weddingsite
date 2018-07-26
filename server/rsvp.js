@@ -84,6 +84,8 @@ module.exports = class Rsvp {
             TableName: this.tableName,
             Item: data
         };
+        // Make sure the key is lowercase
+        dynamoItem.Item.rsvpname = data.rsvpname.toLowerCase();
 
         this.docClient.put(dynamoItem, (err, returnedData) => {
             if (err) {
@@ -99,7 +101,7 @@ module.exports = class Rsvp {
         let params = {
             TableName: this.tableName,
             Key: {
-                "rsvpname": rsvpname,
+                "rsvpname": rsvpname.toLowerCase(),
                 "pin": pin
             }
         };
@@ -122,7 +124,7 @@ module.exports = class Rsvp {
         let params = {
             TableName: this.tableName,
             Key: {
-                "rsvpname": data.rsvpname,
+                "rsvpname": data.rsvpname.toLowerCase(),
                 "pin": data.pin
             },
             // Filter data, don't allow users to add extra stuff or change read only fields
@@ -134,7 +136,7 @@ module.exports = class Rsvp {
                 ":m": data.members
             },
             // Only update if item already exists
-            // ConditionExpression: "attribute_exists(rsvpname)",
+            ConditionExpression: "attribute_exists(rsvpname)",
             ReturnValues:"ALL_NEW"
         };
 
@@ -144,7 +146,7 @@ module.exports = class Rsvp {
                 params.UpdateExpression += " remove plusOneName";
             }else{ // Assign a plus one
                 // TODO: Don't allow plushOneName to be set if we don't have data.hasPlusOne set to true
-                // params.ConditionExpression += " AND hasPlusOne = true";
+                params.ConditionExpression += " AND hasPlusOne = true";
                 params.ExpressionAttributeValues[":n"] = data.plusOneName;
                 params.UpdateExpression += ", plusOneName = :n";
             }

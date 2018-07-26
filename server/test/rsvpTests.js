@@ -35,7 +35,7 @@ suite('RSVP', () => {
         });
     });
 
-    const standardTestGuestName = 'test name';
+    const standardTestGuestName = 'Test Name';
     const standardTestGuestPIN = '42069';
     const desiredMembers = {};
     desiredMembers[standardTestGuestName] = false;
@@ -57,7 +57,7 @@ suite('RSVP', () => {
             let params = {
                 TableName: tableName,
                 Key: {
-                    'rsvpname': standardTestGuestName,
+                    'rsvpname': standardTestGuestName.toLowerCase(),
                     'pin': standardTestGuestPIN
                 }
             };
@@ -73,6 +73,14 @@ suite('RSVP', () => {
     test('Get item works', (done) => {
         createStandardTestGuest(this.rsvp, (err, data)=>{
             this.rsvp.get(standardTestGuestName, standardTestGuestPIN, (err, guestData) =>{
+                assert.deepEqual(guestData, standardTestGuest);
+                done();
+            });
+        });
+    });
+    test('Get item works with lower case', (done) => {
+        createStandardTestGuest(this.rsvp, (err, data)=>{
+            this.rsvp.get(standardTestGuestName.toLowerCase(), standardTestGuestPIN, (err, guestData) =>{
                 assert.deepEqual(guestData, standardTestGuest);
                 done();
             });
@@ -130,9 +138,7 @@ suite('RSVP', () => {
             params.members[name] = true;
 
             rsvp.update(params, (err, data)=>{
-                console.log(err, data);
                 rsvp.get(name, pin, (err, guestData)=>{
-                    console.log(err, guestData);
                     assert(err, 'Should have an error');
                     assert(!guestData, 'Shouldn\'t send anything back');
                     done();
@@ -146,6 +152,21 @@ suite('RSVP', () => {
 
     test('Invalid pin update fails', (done) => {
         testBadUpdate(this.rsvp, standardTestGuestName, '90210', done);
+    });
+
+    test('Add plus one works', (done) => {
+        assert.fail('Need to implement');
+        rsvp.addItem(standardTestGuest, next);
+    });
+
+    test('No plus one for people with plus ones', (done) => {
+        assert.fail('Need to implement');
+        rsvp.addItem(standardTestGuest, next);
+    });
+
+    test('Remove plus one works', (done) => {
+        assert.fail('Need to implement');
+        rsvp.addItem(standardTestGuest, next);
     });
 
     function testPlusOne(rsvp, going, hasPlusOne, plusOneName, done){
@@ -164,9 +185,7 @@ suite('RSVP', () => {
             }
 
             rsvp.update(params, (err, data)=>{
-                console.log(err, data);
                 rsvp.get(standardTestGuestName, standardTestGuestPIN, (err, guestData)=>{
-                    console.log(err, guestData);
                     assert(!guestData.hasPlusOne,
                         'We shouldn\'t be able to change if we are allowed a plus one');
                     assert(!guestData.hasOwnProperty('plusOneName'),
