@@ -109,23 +109,31 @@ suite('RSVP', () => {
         testBadGet(this.rsvp, 'Invalid Name', '90210', done);
     });
 
-    //Test Update
-    test('Update works', (done) => {
-        createStandardTestGuest(this.rsvp, (err, data)=>{
+    function testUpdate(rsvp, coming, done){
+        createStandardTestGuest(rsvp, (err, data)=>{
             let params = {
                 rsvpname: standardTestGuestName,
                 pin: standardTestGuestPIN,
                 members: {}
             };
-            params.members[standardTestGuestName] = true;
+            params.members[standardTestGuestName] = coming;
 
-            this.rsvp.update(params, (err, data)=>{
-                this.rsvp.get(standardTestGuestName, standardTestGuestPIN, (err, guestData)=>{
+            rsvp.update(params, (err, data)=>{
+                assert.equal(data.coming, coming);
+                assert.equal(data.name, 'Test');// Make sure it is capital and correct
+                rsvp.get(standardTestGuestName, standardTestGuestPIN, (err, guestData)=>{
                     assert.deepEqual(guestData.members, params.members);
                     done();
                 });
             });
         });
+    }
+    //Test Update
+    test('Update works', (done) => {
+        testUpdate(this.rsvp, true, done);
+    });
+    test('Update not coming works', (done) => {
+        testUpdate(this.rsvp, false, done);
     });
 
     function testBadUpdate(rsvp, name, pin, done){
@@ -154,19 +162,62 @@ suite('RSVP', () => {
         testBadUpdate(this.rsvp, standardTestGuestName, '90210', done);
     });
 
+    function allowPlusOne(rsvp, guestName, done){
+        let allowedPlusOneGuest = {
+            rsvpname: standardTestGuestName,
+            pin: standardTestGuestPIN,
+            hasPlusOne: true,
+            members: desiredMembers
+        };
+        rsvp.addItem(allowedPlusOneGuest, (err, data) => {
+            let params = {
+                rsvpname: standardTestGuestName,
+                pin: standardTestGuestPIN,
+                members: {},
+                plusOneName: guestName
+            };
+
+            params.members[standardTestGuestName] = true;
+            rsvp.update(params, (err, data)=>{
+                rsvp.get(standardTestGuestName, standardTestGuestPIN, (err, guestData)=>{
+                    if(guestName){
+                        assert.equal(guestData.plusOneName, guestName);
+                    }else{
+                        assert(!guestData.hasOwnProperty('plusOneName'),
+                            'We shouldn\'t have added a plus one');
+                    }
+                    done();
+                });
+            });
+        });
+    }
+
     test('Add plus one works', (done) => {
-        assert.fail('Need to implement');
-        rsvp.addItem(standardTestGuest, next);
+        allowPlusOne(this.rsvp, 'My Date', done);
     });
 
     test('No plus one for people with plus ones', (done) => {
-        assert.fail('Need to implement');
-        rsvp.addItem(standardTestGuest, next);
+        allowPlusOne(this.rsvp, '', done);
     });
 
     test('Remove plus one works', (done) => {
-        assert.fail('Need to implement');
-        rsvp.addItem(standardTestGuest, next);
+        allowPlusOne(this.rsvp, 'My Date', (err, data) => {
+            // Remove our guest
+            let params = {
+                rsvpname: standardTestGuestName,
+                pin: standardTestGuestPIN,
+                members: {},
+                plusOneName: ''
+            };
+            params.members[standardTestGuestName] = true;
+            this.rsvp.update(params, (err, data)=>{
+                this.rsvp.get(standardTestGuestName, standardTestGuestPIN, (err, guestData)=>{
+                    assert(!guestData.hasOwnProperty('plusOneName'),
+                        'We should have removed our plus one');
+                    done();
+                });
+            });
+        });
     });
 
     function testPlusOne(rsvp, going, hasPlusOne, plusOneName, done){
@@ -189,7 +240,7 @@ suite('RSVP', () => {
                     assert(!guestData.hasPlusOne,
                         'We shouldn\'t be able to change if we are allowed a plus one');
                     assert(!guestData.hasOwnProperty('plusOneName'),
-                        'We shouldn\' have been able to add a plus one');
+                        'We shouldn\'t have been able to add a plus one');
                     done();
                 });
             });

@@ -128,7 +128,6 @@ module.exports = class Rsvp {
                 "pin": data.pin
             },
             // Filter data, don't allow users to add extra stuff or change read only fields
-            // NOTE: Don't allow data.hasPlusOne to be changed
             // TODO: Don't allow members keys to be changed, only allow the bool value
             // TODO: Change to members.name1, members.name2, etc to prevent changes
             UpdateExpression: "set members = :m",
@@ -145,8 +144,10 @@ module.exports = class Rsvp {
             if(!data.plusOneName){ // Remove the plus one
                 params.UpdateExpression += " remove plusOneName";
             }else{ // Assign a plus one
-                // TODO: Don't allow plushOneName to be set if we don't have data.hasPlusOne set to true
-                params.ConditionExpression += " AND hasPlusOne = true";
+                // Don't allow plushOneName to be set if we don't have hasPlusOne set to true in the record
+                params.ConditionExpression += " AND hasPlusOne = :b";
+                params.ExpressionAttributeValues[":b"] = true;
+                // Assign our plus one
                 params.ExpressionAttributeValues[":n"] = data.plusOneName;
                 params.UpdateExpression += ", plusOneName = :n";
             }
@@ -161,7 +162,7 @@ module.exports = class Rsvp {
                 // See if they are coming
                 let coming = false;
                 // Do the first name?
-                let name = updatedData.Attributes.rsvpname.split(' ')[0];
+                let name = data.rsvpname.split(' ')[0];
                 for (let name of Object.getOwnPropertyNames(updatedData.Attributes.members)) {
                     if (updatedData.Attributes.members[name]) {
                         coming = true;
