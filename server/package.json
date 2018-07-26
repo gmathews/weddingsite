@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "mocha -u tdd --harmony --inline-diffs --recursive"
+    "test": "mocha -u tdd --recursive"
   },
   "dependencies": {
     "express": "^4.16.1",

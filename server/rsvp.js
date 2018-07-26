@@ -1,15 +1,19 @@
 const parse = require('csv-parse');
 const fs = require('fs');
 
-const table = "Guests";
 module.exports = class Rsvp {
 
-    constructor(awsSDK) {
-        // Create our table
+    constructor(awsSDK, tableName, logger) {
+        this.tableName = tableName;
+        this.docClient = new awsSDK.DynamoDB.DocumentClient();
+        this.logger = logger;
+    }
+
+    createTable(awsSDK, next){
         const dynamodb = new awsSDK.DynamoDB();
 
         const params = {
-            TableName : table,
+            TableName : this.tableName,
             KeySchema: [
                 { AttributeName: "rsvpname", KeyType: "HASH"},  //Partition key
                 { AttributeName: "pin", KeyType: "RANGE" }  //Sort key
@@ -24,87 +28,91 @@ module.exports = class Rsvp {
             }
         };
 
-        const docClient = new awsSDK.DynamoDB.DocumentClient();
-
-        this.docClient = docClient;
-
         // Create the RSVP table
-        dynamodb.createTable(params, function(err, data) {
+        dynamodb.createTable(params, (err, data) => {
             if (err) {
-                console.error("Unable to create table. Error JSON:", JSON.stringify(err, null, 2));
+                this.logger.error("Unable to create table. Error JSON:", JSON.stringify(err, null, 2));
             } else {
-                console.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
-                function addItem(data){
-                    docClient.put(data, function(err, data) {
-                        if (err) {
-                            console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
-                        } else {
-                            console.log("Added item:", JSON.stringify(data, null, 2));
+                this.logger.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
+            }
+            next(err, data);
+        });
+    }
+
+    loadCSV(filename){
+        // Add all the data
+        this.logger.log("Importing guests into DynamoDB. Please wait.");
+        fs.readFile(filename, 'utf8', (err, file) => {
+            if (err) {
+                this.logger.log(JSON.stringify(err));
+                return;
+            }
+
+            this.logger.log(file);
+
+            parse(file, {relax_column_count: true, trim: true}, (err, guestGroups) => {
+                this.logger.log('Error parsing CSV:', err);
+                guestGroups.forEach((guestGroup) => {
+                    // FirstName LastName, SecondFirstName SecondLastName, ... +1, PIN
+                    let members = {};
+                    let hasPlusOne = false;
+                    const pin = guestGroup[guestGroup.length - 1];
+                    // Last item is the PIN, so don't bother parsing it
+                    for(let i = 0; i < guestGroup.length - 1; i++){
+                        const item = guestGroup[i];
+                        if(item === '+1'){
+                            hasPlusOne = true;
+                        }else{
+                            members[item] = false;
                         }
-                    });
-                }
-                // Add all the data
-                console.log("Importing guests into DynamoDB. Please wait.");
-                fs.readFile('./guests.csv', 'utf8', (err, file) => {
-                    if (err) {
-                        console.log(JSON.stringify(err));
-                        return;
                     }
+                    const rsvpname = guestGroup[0];
 
-                    console.log(file);
-
-                    parse(file, {relax_column_count: true, trim: true}, (err, guestGroups) => {
-                        console.log('Error parsing CSV:', err);
-                        guestGroups.forEach((guestGroup) => {
-                            // FirstName LastName, SecondFirstName SecondLastName, ... +1, PIN
-                            let members = {};
-                            let hasPlusOne = false;
-                            const pin = guestGroup[guestGroup.length - 1];
-                            // Last item is the PIN, so don't bother parsing it
-                            for(let i = 0; i < guestGroup.length - 1; i++){
-                                const item = guestGroup[i];
-                                if(item === '+1'){
-                                    hasPlusOne = true;
-                                }else{
-                                    members[item] = false;
-                                }
-                            }
-                            const rsvpname = guestGroup[0];
-
-                            addItem({
-                                TableName: table,
-                                Item: {
-                                    'rsvpname': rsvpname,
-                                    'pin': pin,
-                                    'hasPlusOne': hasPlusOne,
-                                    'members': members
-                                }
-                            });
-                        });
+                    this.addItem({
+                        'rsvpname': rsvpname,
+                        'pin': pin,
+                        'hasPlusOne': hasPlusOne,
+                        'members': members
                     });
                 });
+            });
+        });
+    }
+
+    addItem(data, next){
+        let dynamoItem = {
+            TableName: this.tableName,
+            Item: data
+        };
+
+        this.docClient.put(dynamoItem, (err, returnedData) => {
+            if (err) {
+                this.logger.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+            } else {
+                this.logger.log("Added item:", JSON.stringify(returnedData, null, 2));
             }
+            next(err, returnedData);
         });
     }
 
     get(rsvpname, pin, next) {
         let params = {
-            TableName: table,
+            TableName: this.tableName,
             Key: {
                 "rsvpname": rsvpname,
                 "pin": pin
             }
         };
-        this.docClient.get(params, function(err, data) {
+        this.docClient.get(params, (err, data) => {
             let item = {};
             if (err) {
-                console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                this.logger.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
             } else {
                 if(Object.keys(data).length === 0) {
                     err = "name or pin wrong";
                 }
                 item = data.Item;
-                console.log("GetItem succeeded:", JSON.stringify(data, null, 2));
+                this.logger.log("GetItem succeeded:", JSON.stringify(data, null, 2));
             }
             next(err, item);
         });
@@ -112,7 +120,7 @@ module.exports = class Rsvp {
 
     update(data, next) {
         let params = {
-            TableName: table,
+            TableName: this.tableName,
             Key: {
                 "rsvpname": data.rsvpname,
                 "pin": data.pin
@@ -141,13 +149,13 @@ module.exports = class Rsvp {
                 params.UpdateExpression += ", plusOneName = :n";
             }
         }
-        console.log(params);
-        this.docClient.update(params, function(err, updatedData) {
+        this.logger.log(params);
+        this.docClient.update(params, (err, updatedData) => {
             let result = {};
             if (err) {
-                console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+                this.logger.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
             } else {
-                console.log("UpdateItem succeeded:", JSON.stringify(updatedData, null, 2));
+                this.logger.log("UpdateItem succeeded:", JSON.stringify(updatedData, null, 2));
                 // See if they are coming
                 let coming = false;
                 // Do the first name?
@@ -165,22 +173,26 @@ module.exports = class Rsvp {
     }
 
     all(next) {
-        var params = {
-            TableName: table,
+        let params = {
+            TableName: this.tableName,
             Key:{
                 "rsvpname": "",
                 "pin": ""
             }
         };
 
+        // Deal with this scope
+        let docClient = this.docClient;
+        let logger = this.logger;
+
         let listOfGuestGroups = [];
-        this.docClient.scan(params, onScan);
+        docClient.scan(params, onScan);
 
         function onScan(err, data) {
             if (err) {
-                console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
+                logger.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
             } else {
-                console.log("Scan succeeded.");
+                logger.log("Scan succeeded.");
                 // Go through everything, and format the way we need
                 for (let guest of data.Items) {
                     let confirmedGuests = [];
@@ -212,9 +224,9 @@ module.exports = class Rsvp {
                 // continue scanning if we have more guests, because
                 // scan can retrieve a maximum of 1MB of data
                 if (typeof data.LastEvaluatedKey != "undefined") {
-                    console.log("Scanning for more...");
+                    logger.log("Scanning for more...");
                     params.ExclusiveStartKey = data.LastEvaluatedKey;
-                    this.docClient.scan(params, onScan);
+                    docClient.scan(params, onScan);
                 }else{
                     // Only send data at the very end
                     next(listOfGuestGroups);

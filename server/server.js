@@ -15,7 +15,13 @@ const PORT = 8080;
 const HOST = '0.0.0.0';
 
 // Setup
-const rsvp = new Rsvp(AWS);
+const rsvp = new Rsvp(AWS, 'Guests', console);
+// Create table and load data for manual testing
+rsvp.createTable(AWS, (err, data)=>{
+    if(!err){
+        rsvp.loadCSV('./guests.csv');
+    }
+});
 
 // App
 const app = express();
