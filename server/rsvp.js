@@ -73,7 +73,7 @@ module.exports = class Rsvp {
                         'pin': pin,
                         'hasPlusOne': hasPlusOne,
                         'members': members
-                    });
+                    },()=>{});
                 });
             });
         });
