@@ -194,7 +194,7 @@ module.exports = class Rsvp {
         let docClient = this.docClient;
         let logger = this.logger;
 
-        let listOfGuestGroups = [];
+        let csv = 'Going,Not Going\n';
         docClient.scan(params, onScan);
 
         function onScan(err, data) {
@@ -219,15 +219,23 @@ module.exports = class Rsvp {
                         confirmedGuests.push(guest.plusOneName);
                     }
 
-                    const prettyPrint = {
-                        group: guest.rsvpname,
-                        'confirmed': confirmedGuests,
-                        'unconfirmed': unconfirmedGuests
-                    };
-                    if (guest.hasPlusOne) {
-                        prettyPrint.hasPlusOne = guest.hasPlusOne;
+                    let goingi = confirmedGuests.length;
+                    let notGoingi = unconfirmedGuests.length;
+                    while(goingi > 0 || notGoingi > 0){
+                        if(goingi > 0){
+                            csv += confirmedGuests[goingi - 1];
+                        }
+                        csv += ',';
+
+                        if(notGoingi > 0){
+                            csv += unconfirmedGuests[notGoingi - 1];
+                        }
+
+                        csv += '\n';
+                        goingi--;
+                        notGoingi--;
                     }
-                    listOfGuestGroups.push(prettyPrint);
+                    csv += ',\n';// Add our group break
                 }
 
                 // continue scanning if we have more guests, because
@@ -238,7 +246,7 @@ module.exports = class Rsvp {
                     docClient.scan(params, onScan);
                 }else{
                     // Only send data at the very end
-                    next(listOfGuestGroups);
+                    next(null, csv);
                 }
             }
         }

@@ -69,7 +69,10 @@ app.get('/api/rsvp/all', (req, res) => {
         if(err){
             res.status(404).send(err);
         }else{
-            res.send(data);
+            // Send as a CSV file
+            res.writeHead(200, {'Content-Type': 'text/csv','Content-disposition':'attachment; filename=guestlist.csv'});
+
+            res.end(data);
         }
     });
 });
