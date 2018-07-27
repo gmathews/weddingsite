@@ -98,26 +98,32 @@ module.exports = class Rsvp {
     }
 
     get(rsvpname, pin, next) {
-        let params = {
-            TableName: this.tableName,
-            Key: {
-                "rsvpname": rsvpname.toLowerCase(),
-                "pin": pin
-            }
-        };
-        this.docClient.get(params, (err, data) => {
-            let item = {};
-            if (err) {
-                this.logger.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
-            } else {
-                if(Object.keys(data).length === 0) {
-                    err = "name or pin wrong";
+        const notFoundError = 'name or pin wrong';
+        // Make sure we supply a usable query
+        if(rsvpname && pin){
+            let params = {
+                TableName: this.tableName,
+                Key: {
+                    "rsvpname": rsvpname.toLowerCase(),
+                    "pin": pin
                 }
-                item = data.Item;
-                this.logger.log("GetItem succeeded:", JSON.stringify(data, null, 2));
-            }
-            next(err, item);
-        });
+            };
+            this.docClient.get(params, (err, data) => {
+                let item = {};
+                if (err) {
+                    this.logger.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                } else {
+                    if(Object.keys(data).length === 0) {
+                        err = notFoundError;
+                    }
+                    item = data.Item;
+                    this.logger.log("GetItem succeeded:", JSON.stringify(data, null, 2));
+                }
+                next(err, item);
+            });
+        }else{
+            next(notFoundError);
+        }
     }
 
     update(data, next) {

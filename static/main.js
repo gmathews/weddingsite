@@ -37,7 +37,9 @@ function fillOutSearchForm(){
 
     // Show our new page
     showElement(document.getElementById('search'));
-    document.getElementById('searchForm').addEventListener('submit', requestRSVP);
+    let search = document.getElementById('searchForm');
+    search.addEventListener('submit', requestRSVP);
+    document.getElementById('searchName').focus();
 }
 
 function fillOutGuestSelection(invitationData){
@@ -50,8 +52,6 @@ function fillOutGuestSelection(invitationData){
 
     // Global data, used later
     G_guestDataUiElements = {members:[]};
-    G_pin = invitationData.pin;
-    G_rsvpname = invitationData.rsvpname;
     // End global data
 
     // Create form from data
@@ -65,6 +65,7 @@ function fillOutGuestSelection(invitationData){
         let checkbox = label.getElementsByTagName('input')[0];
         checkbox.checked = value;
         checkbox.name = name;
+        checkbox.focus();
         // Set the label
         label.lastChild.textContent = name;
         G_guestDataUiElements.members.push(checkbox);
@@ -126,23 +127,31 @@ function fillOutConfirmation(confirmationData){
 
 function requestRSVP(e){
     e.preventDefault(); // Don't actually submit
-    let url = new URL(server + '/rsvp');
-    // Get our parameters
-    url.searchParams.append('rsvpname', document.getElementById('searchName').value);
-    url.searchParams.append('pin', document.getElementById('searchZipcode').value);
 
-    fetch(url, {mode: 'cors'})
-    .then((res) => {
-        // Handle any error codes
-        if(!res.ok){
-            res.text().then(handleError);
-        }else{
-            res.json().then(fillOutGuestSelection);
-        }
-    })
-    .catch((err) => {
-        handleError(err);
-    });
+
+    // Global data, used later
+    G_rsvpname = document.getElementById('searchName').value;
+    G_pin = document.getElementById('searchZipcode').value;
+    // End global data
+
+    // Only bother if we have something good
+    if(G_rsvpname && G_pin){
+        let url = new URL(server + '/rsvp');
+        // Get our parameters
+        url.searchParams.append('rsvpname', G_rsvpname);
+        url.searchParams.append('pin', G_pin);
+
+        fetch(url, {mode: 'cors'}).then((res) => {
+            // Handle any error codes
+            if(!res.ok){
+                res.text().then(handleError);
+            }else{
+                res.json().then(fillOutGuestSelection);
+            }
+        }).catch((err) => {
+            handleError(err);
+        });
+    }
 }
 
 function requestConfirmation(e){
@@ -169,16 +178,14 @@ function requestConfirmation(e){
             // "Content-Type": "application/x-www-form-urlencoded",
         },
         body: JSON.stringify(formData)
-    })
-    .then((res) => {
+    }).then((res) => {
         // Handle any error codes
         if(!res.ok){
             res.text().then(handleError);
         }else{
             res.json().then(fillOutConfirmation);
         }
-    })
-    .catch((err) => {
+    }).catch((err) => {
         handleError(err);
     });
 }
