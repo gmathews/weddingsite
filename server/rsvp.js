@@ -98,7 +98,7 @@ module.exports = class Rsvp {
     }
 
     get(rsvpname, pin, next) {
-        const notFoundError = 'name or pin wrong';
+        const notFoundError = 'Please double check name &amp; zip';
         // Make sure we supply a usable query
         if(rsvpname && pin){
             let params = {
