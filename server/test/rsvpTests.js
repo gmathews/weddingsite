@@ -322,4 +322,90 @@ suite('RSVP', () => {
 
         messWithMembers(this.rsvp, badMembers, done);
     });
+
+    // CSV generation
+    test('Uneven rows work', (done) => {
+        // Guest that has 0 going and 3 not going
+        const guest0G3N = {
+            rsvpname: '0Going 3Not',
+            pin: standardTestGuestPIN,
+            hasPlusOne: false,
+            members: {
+                '0Going 3Not': false,
+                '0Going 3Not1': false,
+                '0Going 3Not2': false
+            }
+        };
+        this.rsvp.addItem(guest0G3N, () =>{
+            // Guest that has 1 going and 0 not going
+            const guest1G0N = {
+                rsvpname: '0Going 1Not',
+                pin: standardTestGuestPIN,
+                hasPlusOne: false,
+                members: {
+                    '0Going 1Not': false
+                }
+            };
+            this.rsvp.addItem(guest1G0N, () =>{
+                // Guest that has 1 going and 1 not going
+                const guest1G1N = {
+                    rsvpname: '1Going 1Not',
+                    pin: standardTestGuestPIN,
+                    hasPlusOne: false,
+                    members: {
+                        '1Going 1Not': true,
+                        '1Going 1Not1': false
+                    }
+                };
+                this.rsvp.addItem(guest1G1N, () =>{
+                    // Guest that has 2 going and 0 not going
+                    const guest2G0N = {
+                        rsvpname: '2Going 0Not',
+                        pin: standardTestGuestPIN,
+                        hasPlusOne: false,
+                        members: {
+                            '2Going 0Not': true,
+                            '2Going 0Not1': true
+                        }
+                    };
+                    this.rsvp.addItem(guest2G0N, () => {
+                        this.rsvp.all((err, data) => {
+                            // Make sure it is all right
+                            let lines = data.split('\n');
+                            // First line should be our header
+                            assert.equal(lines[0], 'Going,Not Going');
+
+                            // Find this item
+                            let index = lines.indexOf('1Going 1Not,1Going 1Not1');
+                            assert.notEqual(index, -1, 'Make sure we lined up correctly');
+                            assert.equal(lines[index + 1], ',', 'We should end the group here');
+
+                            // Find this item
+                            index = lines.indexOf(',0Going 1Not');
+                            assert.notEqual(index, -1, 'Make sure we lined up correctly');
+                            assert.equal(lines[index + 1], ',', 'We should end the group here');
+
+                            // Find this item
+                            index = lines.indexOf('2Going 0Not,');
+                            assert.notEqual(index, -1, 'Make sure we lined up correctly');
+                            assert.equal(lines[index + 1], ',', 'We should end the group here');
+                            // Our logic counts the guests in reverse
+                            assert.equal(lines[index - 1], '2Going 0Not1,', 'We should have more entries');
+                            assert.equal(lines[index - 2], ',', 'We should end the group here');
+
+                            // Find this item
+                            index = lines.indexOf(',0Going 3Not');
+                            assert.notEqual(index, -1, 'Make sure we lined up correctly');
+                            assert.equal(lines[index + 1], ',', 'We should end the group here');
+                            // Our logic counts the guests in reverse
+                            assert.equal(lines[index - 1], ',0Going 3Not1', 'We should have more entries');
+                            assert.equal(lines[index - 2], ',0Going 3Not2', 'We should have more entries');
+                            assert.equal(lines[index - 3], ',', 'We should end the group here');
+                            done();
+                        });
+                    });
+                });
+            });
+        });
+    });
 });
