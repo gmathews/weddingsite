@@ -6,8 +6,7 @@ const AWS = require("aws-sdk");
 const Rsvp = require('./rsvp');
 
 AWS.config.update({
-    region: "us-west-2",
-    endpoint: "http://dynamodb:8000"
+    region: "us-east-2"
 });
 
 // Constants
@@ -17,11 +16,11 @@ const HOST = '0.0.0.0';
 // Setup
 const rsvp = new Rsvp(AWS, 'Guests', console);
 // Create table and load data for manual testing
-rsvp.createTable(AWS, (err, data)=>{
-    if(!err){
-        rsvp.loadCSV('./guests.csv');
-    }
-});
+// rsvp.createTable(AWS, (err, data)=>{
+//     if(!err){
+//         rsvp.loadCSV('./guests.csv');
+//     }
+// });
 
 // App
 const app = express();
@@ -35,6 +34,11 @@ app.use(function(req, res, next) {
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
     next();
+});
+
+// Health check
+app.get('/api', (req, res) => {
+    res.send({});
 });
 
 app.route('/api/rsvp')

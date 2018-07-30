@@ -1,4 +1,4 @@
-const server = "http://localhost:8080/api"
+const server = "https://api.teamhangloosegetsmarried.com/api"
 
 function handleError(errorMsg){
     console.log(errorMsg);
