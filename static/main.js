@@ -75,7 +75,12 @@ function fillOutGuestSelection(invitationData){
         label.lastChild.textContent = name;
         G_guestDataUiElements.members.push(checkbox);
     }
-    for(let guest in invitationData.members){
+    let names = Object.getOwnPropertyNames(invitationData.members).sort((a, b) => {
+        if(a < b) return -1;
+        if(a > b) return 1;
+        return 0;
+    });
+    for(let guest of names){
         // Set wither we are checked or not
         if(!startedCloning){
             setupInput(clonableCheckbox, guest, invitationData.members[guest]);

@@ -90,7 +90,7 @@ module.exports = class Rsvp {
         }
 
         // Make sure the key is lowercase
-        dynamoItem.Item.rsvpname = data.rsvpname.toLowerCase();
+        dynamoItem.Item.rsvpname = data.rsvpname.toLowerCase().trim();
 
         this.docClient.put(dynamoItem, (err, returnedData) => {
             if (err) {
@@ -109,7 +109,7 @@ module.exports = class Rsvp {
             let params = {
                 TableName: this.tableName,
                 Key: {
-                    "rsvpname": rsvpname.toLowerCase(),
+                    "rsvpname": rsvpname.toLowerCase().trim(),
                     "pin": pin
                 }
             };
@@ -135,7 +135,7 @@ module.exports = class Rsvp {
         let params = {
             TableName: this.tableName,
             Key: {
-                "rsvpname": data.rsvpname.toLowerCase(),
+                "rsvpname": data.rsvpname.toLowerCase().trim(),
                 "pin": data.pin
             },
             // Filter data, don't allow users to add extra stuff or change read only fields
@@ -188,7 +188,7 @@ module.exports = class Rsvp {
                 // See if they are coming
                 let coming = false;
                 // Do the first name?
-                let name = data.rsvpname.split(' ')[0];
+                let name = data.rsvpname.trim().split(' ')[0];
                 for (let name of Object.getOwnPropertyNames(updatedData.Attributes.members)) {
                     if (updatedData.Attributes.members[name]) {
                         coming = true;
