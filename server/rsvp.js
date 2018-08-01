@@ -134,16 +134,31 @@ module.exports = class Rsvp {
                 "pin": data.pin
             },
             // Filter data, don't allow users to add extra stuff or change read only fields
-            // TODO: Don't allow members keys to be changed, only allow the bool value
-            // TODO: Change to members.name1, members.name2, etc to prevent changes
-            UpdateExpression: "set members = :m",
-            ExpressionAttributeValues:{
-                ":m": data.members
-            },
+            UpdateExpression: "set ",
+            ExpressionAttributeValues:{},
+            ExpressionAttributeNames: {},
             // Only update if item already exists
             ConditionExpression: "attribute_exists(rsvpname)",
             ReturnValues:"ALL_NEW"
         };
+
+        // Add conditional expressions to make sure we aren't trying anything funny
+        let i = 0;
+        for(let k in data.members){
+            if(data.members.hasOwnProperty(k)){
+                let keyname = '#m' + i;
+                // Add a comma if we need it
+                if(i > 0){
+                    params.UpdateExpression += ', ';
+                }
+                params.UpdateExpression += 'members.' + keyname + ' = :m' + i;
+                params.ExpressionAttributeNames[keyname] = k;
+                params.ExpressionAttributeValues[':m' + i] = data.members[k];
+                // Don't allow members keys to be changed, only allow the bool value
+                params.ConditionExpression += ' AND attribute_exists(members.' + keyname + ')';
+                i++;
+            }
+        }
 
         // Manipulate our plus one name
         if(data.hasOwnProperty('plusOneName')){

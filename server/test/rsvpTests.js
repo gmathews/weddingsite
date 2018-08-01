@@ -281,9 +281,7 @@ suite('RSVP', () => {
             };
 
             rsvp.update(params, (err, data)=>{
-                console.log(err, data);
                 rsvp.get(standardTestGuestName, standardTestGuestPIN, (err, guestData)=>{
-                    console.log(err, guestData);
                     assert.equal(Object.getOwnPropertyNames(guestData.members).length, 1,
                         'Shouldn\'t be able to add items');
                     assert(!guestData.members.hasOwnProperty('Invalid Name'),
