@@ -5,9 +5,15 @@ const bodyParser = require('body-parser');
 const AWS = require("aws-sdk");
 const Rsvp = require('./rsvp');
 
-AWS.config.update({
+let params = {
     region: "us-east-2"
-});
+};
+// Setup local
+if(process.env.LOCAL_DYNAMO){
+    params.endpoint = 'http://dynamodb:8000';
+}
+
+AWS.config.update(params);
 
 // Constants
 const PORT = 8080;
@@ -16,11 +22,16 @@ const HOST = '0.0.0.0';
 // Setup
 const rsvp = new Rsvp(AWS, 'Guests', console);
 // Create table and load data for manual testing
-// rsvp.createTable(AWS, (err, data)=>{
-//     if(!err){
-//         rsvp.loadCSV('./guests.csv');
-//     }
-// });
+if(process.env.LOCAL_DYNAMO){
+    rsvp.createTable(AWS, (err, data)=>{
+        if(!err){
+            rsvp.loadCSV('./guests.csv');
+        }
+    });
+}else{
+    // Load all of our guest data
+    rsvp.loadCSV('./guests.csv');
+}
 
 // App
 const app = express();
@@ -30,7 +41,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 // Setup CORS for security
 app.use(function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');// TODO: tighten to specific URL?
+    res.header('Access-Control-Allow-Origin', 'https://teamhangloosegetsmarried.com');
+    if(process.env.ALLOW_CORS){
+        res.header('Access-Control-Allow-Origin', '*');
+    }
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
     next();

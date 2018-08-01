@@ -47,7 +47,7 @@ suite('RSVP', () => {
     };
 
     function createStandardTestGuest(rsvp, next){
-        rsvp.addItem(standardTestGuest, next);
+        rsvp.addItem(standardTestGuest, true, next);
     }
 
     test('Make sure add item works for testing', (done) => {
@@ -169,7 +169,7 @@ suite('RSVP', () => {
             hasPlusOne: true,
             members: desiredMembers
         };
-        rsvp.addItem(allowedPlusOneGuest, (err, data) => {
+        rsvp.addItem(allowedPlusOneGuest, true, (err, data) => {
             let params = {
                 rsvpname: standardTestGuestName,
                 pin: standardTestGuestPIN,
@@ -334,7 +334,7 @@ suite('RSVP', () => {
                 '0Going 3Not2': false
             }
         };
-        this.rsvp.addItem(guest0G3N, () =>{
+        this.rsvp.addItem(guest0G3N, true, () =>{
             // Guest that has 1 going and 0 not going
             const guest1G0N = {
                 rsvpname: '0Going 1Not',
@@ -344,7 +344,7 @@ suite('RSVP', () => {
                     '0Going 1Not': false
                 }
             };
-            this.rsvp.addItem(guest1G0N, () =>{
+            this.rsvp.addItem(guest1G0N, true, () =>{
                 // Guest that has 1 going and 1 not going
                 const guest1G1N = {
                     rsvpname: '1Going 1Not',
@@ -355,7 +355,7 @@ suite('RSVP', () => {
                         '1Going 1Not1': false
                     }
                 };
-                this.rsvp.addItem(guest1G1N, () =>{
+                this.rsvp.addItem(guest1G1N, true, () =>{
                     // Guest that has 2 going and 0 not going
                     const guest2G0N = {
                         rsvpname: '2Going 0Not',
@@ -366,7 +366,7 @@ suite('RSVP', () => {
                             '2Going 0Not1': true
                         }
                     };
-                    this.rsvp.addItem(guest2G0N, () => {
+                    this.rsvp.addItem(guest2G0N, true, () => {
                         this.rsvp.all((err, data) => {
                             // Make sure it is all right
                             let lines = data.split('\n');

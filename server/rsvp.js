@@ -73,17 +73,22 @@ module.exports = class Rsvp {
                         'pin': pin,
                         'hasPlusOne': hasPlusOne,
                         'members': members
-                    },()=>{});
+                    }, false, ()=>{});
                 });
             });
         });
     }
 
-    addItem(data, next){
+    addItem(data, overwrite, next){
         let dynamoItem = {
             TableName: this.tableName,
             Item: data
         };
+
+        if(!overwrite){
+            dynamoItem.ConditionExpression = 'attribute_not_exists(rsvpname)';
+        }
+
         // Make sure the key is lowercase
         dynamoItem.Item.rsvpname = data.rsvpname.toLowerCase();
 

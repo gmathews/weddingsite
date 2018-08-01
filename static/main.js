@@ -1,4 +1,9 @@
-const server = "https://api.teamhangloosegetsmarried.com/api"
+let server = "https://api.teamhangloosegetsmarried.com/api"
+
+// Setup for local dev
+if(!window.location.hostname){
+    server = "http://localhost:8080/api"
+}
 
 function handleError(errorMsg){
     console.log(errorMsg);
@@ -141,7 +146,10 @@ function requestRSVP(e){
         url.searchParams.append('rsvpname', G_rsvpname);
         url.searchParams.append('pin', G_pin);
 
-        fetch(url, {mode: 'cors'}).then((res) => {
+        let params = {
+            mode: 'cors'
+        };
+        fetch(url, params).then((res) => {
             // Handle any error codes
             if(!res.ok){
                 res.text().then(handleError);
@@ -170,15 +178,17 @@ function requestConfirmation(e){
         formData.plusOneName = G_guestDataUiElements.plusOneName.value;
     }
 
-    fetch(url, {
-        mode: 'cors',
+    let params = {
         method: 'PUT',
+        mode: 'cors',
         headers: {
             "Content-Type": "application/json; charset=utf-8",
             // "Content-Type": "application/x-www-form-urlencoded",
         },
         body: JSON.stringify(formData)
-    }).then((res) => {
+    };
+
+    fetch(url, params).then((res) => {
         // Handle any error codes
         if(!res.ok){
             res.text().then(handleError);
