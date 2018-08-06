@@ -56,24 +56,32 @@ module.exports = class Rsvp {
                     // FirstName LastName, SecondFirstName SecondLastName, ... +1, PIN
                     let members = {};
                     let hasPlusOne = false;
-                    const pin = guestGroup[guestGroup.length - 1];
+                    let pin = '';
                     // Last item is the PIN, so don't bother parsing it
                     for(let i = 0; i < guestGroup.length - 1; i++){
                         const item = guestGroup[i];
                         if(item === '+1'){
                             hasPlusOne = true;
-                        }else{
+                        }else if(item.length > 0){ // Ignore empty cells
                             members[item] = false;
+                            // PIN ends up being the last valid group
+                            pin = item;
                         }
                     }
                     const rsvpname = guestGroup[0];
+
+                    delete members[pin];
 
                     this.addItem({
                         'rsvpname': rsvpname,
                         'pin': pin,
                         'hasPlusOne': hasPlusOne,
                         'members': members
-                    }, false, ()=>{});
+                    }, false, (err, data)=>{
+                        if(err){
+                            console.log(rsvpname, pin, hasPlusOne, members);
+                        }
+                    });
                 });
             });
         });
