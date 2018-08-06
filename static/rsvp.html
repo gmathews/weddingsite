@@ -17,21 +17,8 @@
             <li><a href="registry.html">Registry</a></li>
             <li><a href="info.html">Directions &amp; Time</a></li>
         </ul>
-        <div class="error" id="errorMsg"></div>
-        <div class="search" id="search">
-            <form id="searchForm" action="#">
-                <div>
-                    <p>Enter the first full name(First &amp; Last) listed on your invitation.</p>
-                    <input title="Full name(First Last)" type=text name="name" id="searchName">
-                </div>
-                <div>
-                    <p>Enter your ZIP Code</p>
-                    <input title="ZIP Code" type=text name="zipcode" id="searchZipcode">
-                </div>
-                <div> <input type="submit" value="Continue"> </div>
-            </form>
-        </div>
-        <div class="guestselection" id="guestselection">
+        <div class="error" id="errorMsg" style="display: none"></div>
+        <div class="guestselection" id="guestselection" style="display: none">
             <!-- <a class="tryAgain" href="rsvp.html">If this isn't you, go here to return.</a> -->
             <form id="guestForm" action="#">
                 <p>Please select every person who will get to see Team Hangloose get married in person.</p>
@@ -47,10 +34,23 @@
                 <input type="submit" value="Submit" id="guestSelectionSubmit">
             </form>
         </div>
-        <div class="confirmation" id="confirmation">
+        <div class="confirmation" id="confirmation" style="display: none">
             <p id="confirmationthanks">Thanks {{name}}, for your response.</p>
             <p id="confirmationyes">We look forward to sharing our special day with you.</p>
             <p id="confirmationno">We are sorry you can't make it.</p>
+        </div>
+        <div class="search" id="search" style="display: none">
+            <form id="searchForm" action="#">
+                <div>
+                    <p>Enter the first full name(First &amp; Last) listed on your invitation.</p>
+                    <input title="Full name(First Last)" type=text name="name" id="searchName">
+                </div>
+                <div>
+                    <p>Enter your ZIP Code</p>
+                    <input title="ZIP Code" type=text name="zipcode" id="searchZipcode">
+                </div>
+                <div> <input type="submit" value="Continue"> </div>
+            </form>
         </div>
         <div class="footer">
             <p>
@@ -58,6 +58,5 @@
             </p>
         </div>
         <script src="main.js" type="application/javascript"></script>
-
     </body>
 </html>

@@ -57,8 +57,8 @@ module.exports = class Rsvp {
                     let members = {};
                     let hasPlusOne = false;
                     let pin = '';
-                    // Last item is the PIN, so don't bother parsing it
-                    for(let i = 0; i < guestGroup.length - 1; i++){
+                    // Go through each item
+                    for(let i = 0; i < guestGroup.length; i++){
                         const item = guestGroup[i];
                         if(item === '+1'){
                             hasPlusOne = true;
