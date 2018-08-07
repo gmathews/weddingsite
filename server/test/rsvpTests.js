@@ -8,6 +8,10 @@ const logger = {
     log:()=>{},
     error:()=>{}
 };
+// const logger = {
+//     log:console.log,
+//     error:console.log
+// };
 
 suite('RSVP', () => {
     // Setup each time
@@ -122,6 +126,7 @@ suite('RSVP', () => {
                 assert.equal(data.coming, coming);
                 assert.equal(data.name, 'Test');// Make sure it is capital and correct
                 rsvp.get(standardTestGuestName, standardTestGuestPIN, (err, guestData)=>{
+                    assert(guestData.responded, 'We should have responded');
                     assert.deepEqual(guestData.members, params.members);
                     done();
                 });
@@ -323,7 +328,7 @@ suite('RSVP', () => {
 
     // CSV generation
     test('Uneven rows work', (done) => {
-        // Guest that has 0 going and 3 not going
+        // Guest that has 0 going and 3 haven't responded yet
         const guest0G3N = {
             rsvpname: '0Going 3Not',
             pin: standardTestGuestPIN,
@@ -340,6 +345,7 @@ suite('RSVP', () => {
                 rsvpname: '0Going 1Not',
                 pin: standardTestGuestPIN,
                 hasPlusOne: false,
+                responded: true,
                 members: {
                     '0Going 1Not': false
                 }
@@ -350,6 +356,7 @@ suite('RSVP', () => {
                     rsvpname: '1Going 1Not',
                     pin: standardTestGuestPIN,
                     hasPlusOne: false,
+                    responded: true,
                     members: {
                         '1Going 1Not': true,
                         '1Going 1Not1': false
@@ -361,6 +368,7 @@ suite('RSVP', () => {
                         rsvpname: '2Going 0Not',
                         pin: standardTestGuestPIN,
                         hasPlusOne: false,
+                        responded: true,
                         members: {
                             '2Going 0Not': true,
                             '2Going 0Not1': true
@@ -371,34 +379,34 @@ suite('RSVP', () => {
                             // Make sure it is all right
                             let lines = data.split('\n');
                             // First line should be our header
-                            assert.equal(lines[0], 'Going,Not Going');
+                            assert.equal(lines[0], 'Going,Not Going,Waiting');
 
                             // Find this item
-                            let index = lines.indexOf('1Going 1Not,1Going 1Not1');
+                            let index = lines.indexOf('1Going 1Not,1Going 1Not1,');
                             assert.notEqual(index, -1, 'Make sure we lined up correctly');
-                            assert.equal(lines[index + 1], ',', 'We should end the group here');
+                            assert.equal(lines[index + 1], ',,', 'We should end the group here');
 
                             // Find this item
-                            index = lines.indexOf(',0Going 1Not');
+                            index = lines.indexOf(',0Going 1Not,');
                             assert.notEqual(index, -1, 'Make sure we lined up correctly');
-                            assert.equal(lines[index + 1], ',', 'We should end the group here');
+                            assert.equal(lines[index + 1], ',,', 'We should end the group here');
 
                             // Find this item
-                            index = lines.indexOf('2Going 0Not,');
+                            index = lines.indexOf('2Going 0Not,,');
                             assert.notEqual(index, -1, 'Make sure we lined up correctly');
-                            assert.equal(lines[index + 1], ',', 'We should end the group here');
+                            assert.equal(lines[index + 1], ',,', 'We should end the group here');
                             // Our logic counts the guests in reverse
-                            assert.equal(lines[index - 1], '2Going 0Not1,', 'We should have more entries');
-                            assert.equal(lines[index - 2], ',', 'We should end the group here');
+                            assert.equal(lines[index - 1], '2Going 0Not1,,', 'We should have more entries');
+                            assert.equal(lines[index - 2], ',,', 'We should end the group here');
 
                             // Find this item
-                            index = lines.indexOf(',0Going 3Not');
+                            index = lines.indexOf(',,0Going 3Not');
                             assert.notEqual(index, -1, 'Make sure we lined up correctly');
-                            assert.equal(lines[index + 1], ',', 'We should end the group here');
+                            assert.equal(lines[index + 1], ',,', 'We should end the group here');
                             // Our logic counts the guests in reverse
-                            assert.equal(lines[index - 1], ',0Going 3Not1', 'We should have more entries');
-                            assert.equal(lines[index - 2], ',0Going 3Not2', 'We should have more entries');
-                            assert.equal(lines[index - 3], ',', 'We should end the group here');
+                            assert.equal(lines[index - 1], ',,0Going 3Not1', 'We should have more entries');
+                            assert.equal(lines[index - 2], ',,0Going 3Not2', 'We should have more entries');
+                            assert.equal(lines[index - 3], ',,', 'We should end the group here');
                             done();
                         });
                     });

@@ -147,8 +147,8 @@ module.exports = class Rsvp {
                 "pin": data.pin
             },
             // Filter data, don't allow users to add extra stuff or change read only fields
-            UpdateExpression: "set ",
-            ExpressionAttributeValues:{},
+            UpdateExpression: "set responded = :r",
+            ExpressionAttributeValues:{':r': true},
             ExpressionAttributeNames: {},
             // Only update if item already exists
             ConditionExpression: "attribute_exists(rsvpname)",
@@ -160,11 +160,7 @@ module.exports = class Rsvp {
         for(let k in data.members){
             if(data.members.hasOwnProperty(k)){
                 let keyname = '#m' + i;
-                // Add a comma if we need it
-                if(i > 0){
-                    params.UpdateExpression += ', ';
-                }
-                params.UpdateExpression += 'members.' + keyname + ' = :m' + i;
+                params.UpdateExpression += ', members.' + keyname + ' = :m' + i;
                 params.ExpressionAttributeNames[keyname] = k;
                 params.ExpressionAttributeValues[':m' + i] = data.members[k];
                 // Don't allow members keys to be changed, only allow the bool value
@@ -222,7 +218,7 @@ module.exports = class Rsvp {
         let docClient = this.docClient;
         let logger = this.logger;
 
-        let csv = 'Going,Not Going\n';
+        let csv = 'Going,Not Going,Waiting\n';
         docClient.scan(params, onScan);
 
         function onScan(err, data) {
@@ -233,12 +229,18 @@ module.exports = class Rsvp {
                 // Go through everything, and format the way we need
                 for (let guest of data.Items) {
                     let confirmedGuests = [];
+                    let notGoing = [];
                     let unconfirmedGuests = [];
                     for (let name of Object.getOwnPropertyNames(guest.members)) {
                         if (guest.members[name]) {
                             confirmedGuests.push(name);
                         }else{
-                            unconfirmedGuests.push(name);
+                            if(guest.hasOwnProperty('responded')){
+                                notGoing.push(name);
+                            }else{
+                                unconfirmedGuests.push(name);
+                            }
+
                         }
                     }
 
@@ -248,22 +250,29 @@ module.exports = class Rsvp {
                     }
 
                     let goingi = confirmedGuests.length;
-                    let notGoingi = unconfirmedGuests.length;
-                    while(goingi > 0 || notGoingi > 0){
+                    let notGoingi = notGoing.length;
+                    let unconfirmedi = unconfirmedGuests.length;
+                    while(goingi > 0 || notGoingi > 0 || unconfirmedi > 0){
                         if(goingi > 0){
                             csv += confirmedGuests[goingi - 1];
                         }
                         csv += ',';
 
                         if(notGoingi > 0){
-                            csv += unconfirmedGuests[notGoingi - 1];
+                            csv += notGoing[notGoingi - 1];
+                        }
+                        csv += ',';
+
+                        if(unconfirmedi > 0){
+                            csv += unconfirmedGuests[unconfirmedi - 1];
                         }
 
                         csv += '\n';
                         goingi--;
                         notGoingi--;
+                        unconfirmedi--;
                     }
-                    csv += ',\n';// Add our group break
+                    csv += ',,\n';// Add our group break
                 }
 
                 // continue scanning if we have more guests, because
