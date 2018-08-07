@@ -1,13 +1,25 @@
-body, html {
+body.rsvp, body.main, body.info, body.reg, html {
     height: 100%;
     margin: 0;
     background-color: black;
-    background-image: url("gk.jpg");
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
     font-size: 16px;
     font-family: Roboto, "Lucida Grande", Tahoma;
+}
+
+body.rsvp {
+    background-image: url("gk0.jpg");
+}
+body.main {
+    background-image: url("gk2.jpg");
+}
+body.info {
+    background-image: url("gk1.jpg");
+}
+body.reg {
+    background-image: url("gk3.jpg");
 }
 
 div.transbox, div.info, div.registry{
