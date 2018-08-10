@@ -1,4 +1,4 @@
-body.rsvp, body.main, body.info, body.reg, html {
+body.rsvp, body.main, body.info, body.reg, body.dir, html {
     height: 100%;
     margin: 0;
     background-color: black;
@@ -16,9 +16,12 @@ body.rsvp {
 body.main {
     background-image: url("gk2.jpg");
 }
-body.info {
+body.dir {
     background-image: url("gk1.jpg");
     background-position: top;
+}
+body.info {
+    background-image: url("gk4.jpg");
 }
 body.reg {
     background-image: url("gk3.jpg");
