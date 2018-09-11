@@ -39,7 +39,14 @@ div.transbox, div.registry, div.info{
     /* font-size: x-large; */
     font-size: 200%;
 }
-
+div.registry{
+    height: calc(100% - 6em);
+    top: 3em;
+    color: white;
+    text-align: center;
+    font-size: 100%;
+    padding: 0;
+}
 div.info{
     /* height: 70%; */
     height: calc(100% - 6em);
@@ -51,7 +58,7 @@ div.info{
     font-size: 100%;
     padding: 0;
 }
-p.info{
+p.info, p.reg{
     padding-left: 1em;
     padding-right: 1em;
 }
@@ -60,7 +67,7 @@ li.info, ul.info{
     /* margin-left: 1em; */
     margin-right: 0.5em;
 }
-.info a:link, a:visited {
+.info, .reg, a:link, a:visited {
     color: white;
 }
 
